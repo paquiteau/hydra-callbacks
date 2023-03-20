@@ -1,0 +1,88 @@
+[project]
+name = "hydra-callbacks"
+
+description = "A collection of usefull hydra callbacks for hydra configuration"
+
+readme = "README.md"
+
+requires-python = ">=3.8"
+
+license =  {file = "LICENSE.txt"}
+
+keywords = ["hydra" "configuration" "callback"]
+
+authors = [
+  {name = "Pierre-Antoine Comby", email = "pierre-antoine.comby@cea.fr" } # Optional
+]
+
+classifiers = [  # Optional
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 3 - Alpha",
+
+  # Indicate who your project is intended for
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+
+  # Specify the Python versions you support here. In particular, ensure
+  # that you indicate you support Python 3. These classifiers are *not*
+  # checked by "pip install". See instead "python_requires" below.
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+
+
+dependencies = [
+  "hydra-core",
+  "GitPython",
+  "pandas",
+]
+
+[project.optional-dependencies]
+dev = ["black", "isort", "ruff"]
+
+[project.urls]
+"Homepage" = "https://github.com/paquiteau/hydra-callbacks"
+"Bug Reports" = "https://github.com/paquiteau/hydra-callbacks/issues"
+"Sources" = "https://github.com/paquiteau/hydra-callbacks"
+
+[build-system]
+# These are the assumed default build requirements from pip:
+# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
+requires = ["setuptools>=43.0.0", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.packages.find]
+where=["src"]
+
+[tool.setuptools_scm]
+
+# Formatting using black.
+[tool.black]
+
+[tool.isort]
+profile="black"
+
+[tool.ruff]
+src = ["src", "tests"]
+select = ["E", "F", "B", "Q", "D", "UP", "ANN"]
+
+ignore = [
+    "ANN101", # missing type annotation for self
+    "ANN102", # missing type annotation for cls in classmethod.
+    "ANN204", # missing return type for __init__
+    "D105", # missing docstring in magic method
+    "D404", # Imperative mode is not necessary everywhere, trust me.
+]
+[tool.ruff.pydocstyle]
+convention = "numpy"
+#ignore = ["D107", "D203","D212","D213","D402", "D413", "D415", "D416", "D417", "D105"]
+[tool.ruff.per-file-ignores]
+# relax code quality for tests and examples.
+"examples/conftest.py" = ["ANN"]
+"examples/example_*.py" = ["D", "ANN"]
+"tests/test_*.py" = ["D", "ANN"]
