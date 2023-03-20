@@ -26,7 +26,7 @@ class AnyRunCallback(Callback):
 
     def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
         """Execute before any run."""
-        raise NotImplementedError
+        pass
 
     def on_run_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a single run."""
@@ -38,7 +38,7 @@ class AnyRunCallback(Callback):
 
     def _on_anyrun_end(self, config: DictConfig, **kwargs) -> None:
         """Execute before any run."""
-        raise NotImplementedError
+        pass
 
 
 class RuntimePerformance(AnyRunCallback):
