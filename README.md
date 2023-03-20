@@ -1,5 +1,10 @@
 # Hydra Callbacks 
 
+
+[![style](https://img.shields.io/badge/style-black-black)](https://github.com/psf/black)
+[![framework](https://img.shields.io/badge/framework-hydra-blue)](https://hydra.cc)
+
+
 A collection of usefulls callbacks for the [https://hydra.cc/](hydra) configuration framework.
 
 
