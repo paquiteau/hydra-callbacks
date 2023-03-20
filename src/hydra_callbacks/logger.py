@@ -33,14 +33,22 @@ class PerfLogger:
         name: str = "default",
         time_format: str = "{name} duration: {:.2f}s",
     ):
-        self.logger = logger
         self._name = name
         self._log_level = level
+
+        if isinstance(logger, Logger):
+            self.logger = lambda msg: logger.log(self._log_level, msg)
+        elif callable(logger):
+            self.logger = logger
+        else:
+            raise ValueError("logger must be a Logger or a callable")
+
         self._start_time = None
         self._stop_time = None
         self._format = time_format
 
     def __enter__(self):
+        self.logger(f"Starting {self._name}...")
         self._start_time = perf_counter()
         return self
 
@@ -49,10 +57,7 @@ class PerfLogger:
         elapsed = self._stop_time - self._start_time
         formatted = self._format.format(elapsed, name=self._name)
         self.timers[self._name] = elapsed
-        if isinstance(self.logger, Logger):
-            self.logger.log(self._log_level, formatted)
-        elif callable(self.logger):
-            self.logger(formatted)
+        self.logger(formatted)
 
     @classmethod
     def recap(self) -> str:
