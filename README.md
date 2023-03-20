@@ -28,15 +28,12 @@ hydra:
 
 ## Available Callbacks 
 
-| Name             | Action                                     | Parameters                                                                  | Author     |
-|:-----------------|:-------------------------------------------|-----------------------------------------------------------------------------|------------|
-| GitInfo          | Check status of Repository                 | - clean: bool,If True, the Repository must be in a clean state to run jobs. | @paquiteau |
-|:-----------------|:-------------------------------------------|-----------------------------------------------------------------------------|------------|
-| LatestRunLink    | Get a link to the latest run               | - run_base_dir: str                                                         | @paquiteau |
-|                  |                                            | - multirun_base_dir: str                                                    |            |
-|:-----------------|:-------------------------------------------|-----------------------------------------------------------------------------|------------|
-| MultiRunGatherer | Gather results json file in a single table | - result_file: str                                                          | @paquiteau |
-|:-----------------|:-------------------------------------------|-----------------------------------------------------------------------------|------------|
+| Name               | Action                                     | Author                                    |
+|:-------------------|:-------------------------------------------|-------------------------------------------|
+| GitInfo            | Check status of Repository                 | [paquiteau](https://github.com/paquiteau) |
+| LatestRunLink      | Get a link to the latest run               | [paquiteau](https://github.com/paquiteau) |
+| MultiRunGatherer   | Gather results json file in a single table | [paquiteau](https://github.com/paquiteau) |
+| RuntimePerformance | Get Execution time for each run            | [paquiteau](https://github.com/paquiteau) |
 
 And more to come ! 
 
