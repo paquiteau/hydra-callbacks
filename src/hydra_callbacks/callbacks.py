@@ -44,11 +44,11 @@ class AnyRunCallback(Callback):
 class RuntimePerformance(AnyRunCallback):
     """Callback that log total runtime infos."""
 
-    def _on_anyrun_start(self, config: DictConfig) -> None:
+    def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
         """Execute before any run."""
         self.start_time = time.perf_counter()
 
-    def _on_anyrun_end(self, config: DictConfig) -> None:
+    def _on_anyrun_end(self, config: DictConfig, **kwargs) -> None:
         """Execute before any run."""
         end_time = time.perf_counter()
         duration = end_time - self.start_time
@@ -70,7 +70,7 @@ class GitInfo(AnyRunCallback):
     def __init__(self, clean: bool = False):
         self.clean = clean
 
-    def _on_anyrun_start(self, config: DictConfig) -> None:
+    def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
         """Execute before any run."""
         import git
 
