@@ -5,11 +5,13 @@ description = "A collection of usefull hydra callbacks for hydra configuration"
 
 readme = "README.md"
 
+dynamic = ["version"]
+
 requires-python = ">=3.8"
 
 license =  {file = "LICENSE.txt"}
 
-keywords = ["hydra" "configuration" "callback"]
+keywords = ["hydra", "configuration", "callback"]
 
 authors = [
   {name = "Pierre-Antoine Comby", email = "pierre-antoine.comby@cea.fr" } # Optional
