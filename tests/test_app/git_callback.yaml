@@ -1,0 +1,7 @@
+foo: bar
+
+hydra:
+  callbacks:
+    git_infos:
+      _target_: hydra_callbacks.GitInfo
+      clean: true
