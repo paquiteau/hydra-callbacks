@@ -249,21 +249,23 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
 def test_dirty_git_repo_error(tmpdir: Path) -> None:
     """Test for dirty git repo error."""
 
+    shutil.copytree("tests/test_app/", tmpdir / "test_app")
+    os.chdir(tmpdir / "test_app")
+    # create a fake temporary repo.
+    testapp = git.Repo.init()
+    testapp.git.add(".")
+    testapp.index.commit("Initial commit")
+
     cmd = [
-        "tests/test_app/dummy_app.py",
+        "dummy_app.py",
         "--config-name=git_callback.yaml",
         "hydra.callbacks.git_infos.clean=true",
         "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
         "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
     ]
 
-    dirty = git.Repo().is_dirty()
-
-    if not dirty:
-        shutil.copy2("tests/test_app/dummy.txt", "tests/test_app/dummy.bak")
-        # create a dummy file to make the repo dirty
-        with open("tests/test_app/dummy.txt", "w") as f:
-            f.write("Dummy has changed.")
+    with open(tmpdir / "test_app/dummy.txt", "w") as f:
+        f.write("Dummy has changed.")
 
     result, _err = run_python_script(cmd, raise_exception=False)
     assert _err == ""
@@ -278,6 +280,3 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
             )
         ),
     )
-
-    if not dirty:
-        shutil.copy2("tests/test_app/dummy.bak", "tests/test_app/dummy.txt")
