@@ -1,0 +1,7 @@
+foo: bar
+
+hydra:
+  callbacks:
+    runtime_perf:
+      _target_: hydra_callbacks.RuntimePerformance
+      enabled: true

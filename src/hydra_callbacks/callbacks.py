@@ -42,19 +42,29 @@ class AnyRunCallback(Callback):
 
 
 class RuntimePerformance(AnyRunCallback):
-    """Callback that log total runtime infos."""
+    """Callback that log total runtime infos.
+
+    Parameters
+    ----------
+    enabled : bool
+        if True, will log the total runtime.
+    """
+
+    def __init__(self, enabled: bool = True):
+        self.enabled = enabled
+        if not self.enabled:
+            self._on_anyrun_start = lambda *args, **kwargs: None
+            self._on_anyrun_end = lambda *args, **kwargs: None
 
     def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
         """Execute before any run."""
         self.start_time = time.perf_counter()
 
     def _on_anyrun_end(self, config: DictConfig, **kwargs) -> None:
-        """Execute before any run."""
+        """Execute after any run."""
         end_time = time.perf_counter()
         duration = end_time - self.start_time
-        logging.getLogger("performance").info(
-            f"Total runtime: {duration.total_seconds():.2f} seconds"
-        )
+        logging.getLogger("performance").info(f"Total runtime: {duration:.2f} seconds")
 
 
 class GitInfo(AnyRunCallback):
@@ -149,10 +159,12 @@ class LatestRunLink(Callback):
         self._on_anyrun_end(config.hydra.sweep.dir, self.multirun_base_dir)
 
     def _on_anyrun_end(self, run_dir: str, base_dir: str) -> None:
+        latest_dir_path = os.path.join(base_dir, "latest")
         self._force_symlink(
             to_absolute_path(run_dir),
-            to_absolute_path(os.path.join(base_dir, "latest")),
+            to_absolute_path(latest_dir_path),
         )
+        logging.getLogger("hydra").info(f"Latest run is at: {latest_dir_path}")
 
     def _force_symlink(self, src: str, dest: str) -> None:
         """Create a symlink from src to test, overwriting dest if necessary."""
@@ -163,4 +175,4 @@ class LatestRunLink(Callback):
                 os.remove(dest)
                 os.symlink(src, dest)
             else:
-                raise e
+                raise e  # pragma: no cover
