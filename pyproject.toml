@@ -64,7 +64,7 @@ where=["src"]
 
 
 [tool.setuptools_scm]
-write_to = "src/patch_denoise/_version.py"
+write_to = "src/hydra_callbacks/_version.py"
 version_scheme = "python-simplified-semver"
 local_scheme="no-local-version"
 
@@ -90,8 +90,6 @@ convention = "numpy"
 #ignore = ["D107", "D203","D212","D213","D402", "D413", "D415", "D416", "D417", "D105"]
 [tool.ruff.per-file-ignores]
 # relax code quality for tests and examples.
-"examples/conftest.py" = ["ANN"]
-"examples/example_*.py" = ["D", "ANN"]
 "tests/test_*.py" = ["D", "ANN"]
 
 
