@@ -3,5 +3,6 @@
 *.log
 tmp/
 
-
+build/
+dist/
 _version.py
