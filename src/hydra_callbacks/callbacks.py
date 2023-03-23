@@ -24,7 +24,7 @@ class AnyRunCallback(Callback):
         """Execute before a multi run."""
         self._on_anyrun_start(config, **kwargs)
 
-    def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
+    def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before any run."""
         pass
 
@@ -36,7 +36,7 @@ class AnyRunCallback(Callback):
         """Execute before a multi run."""
         self._on_anyrun_end(config, **kwargs)
 
-    def _on_anyrun_end(self, config: DictConfig, **kwargs) -> None:
+    def _on_anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before any run."""
         pass
 
@@ -56,11 +56,11 @@ class RuntimePerformance(AnyRunCallback):
             self._on_anyrun_start = lambda *args, **kwargs: None
             self._on_anyrun_end = lambda *args, **kwargs: None
 
-    def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
+    def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before any run."""
         self.start_time = time.perf_counter()
 
-    def _on_anyrun_end(self, config: DictConfig, **kwargs) -> None:
+    def _on_anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute after any run."""
         end_time = time.perf_counter()
         duration = end_time - self.start_time
@@ -80,7 +80,7 @@ class GitInfo(AnyRunCallback):
     def __init__(self, clean: bool = False):
         self.clean = clean
 
-    def _on_anyrun_start(self, config: DictConfig, **kwargs) -> None:
+    def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before any run."""
         import git
 

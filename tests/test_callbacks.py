@@ -11,7 +11,6 @@ from hydra.test_utils.test_utils import (
     _chdir_to_dir_containing,
     run_python_script,
 )
-import hydra_callbacks
 
 _chdir_to_dir_containing("pyproject.toml")
 

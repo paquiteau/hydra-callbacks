@@ -66,6 +66,6 @@ class PerfLogger:
         return ", ".join([f"{name}: {t:.2f}s" for name, t in cls.timers.items()])
 
     @classmethod
-    def reset(cls):
+    def reset(cls) -> None:
         """Reset all the registered timers."""
         cls.timers = {}
