@@ -262,7 +262,7 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
     if not dirty:
         shutil.copy2("tests/test_app/dummy.txt", "tests/test_app/dummy.bak")
         # create a dummy file to make the repo dirty
-        with open("dummy.txt", "w") as f:
+        with open("tests/test_app/dummy.txt", "w") as f:
             f.write("Dummy has changed.")
 
     result, _err = run_python_script(cmd, raise_exception=False)
