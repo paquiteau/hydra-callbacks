@@ -45,6 +45,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["black", "isort", "ruff"]
+test = ["pytest", "pytest-cov", "pytest-xdist", "pytest-sugar"]
 
 [project.urls]
 "Homepage" = "https://github.com/paquiteau/hydra-callbacks"
