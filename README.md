@@ -9,8 +9,11 @@ A collection of usefulls callbacks for the [https://hydra.cc/](hydra) configurat
 
 
 ## Installation 
+``` shell 
+pip install hydra-callbacks
+```
 
-
+Development version 
 ``` shell
 pip install git+https://github.com/paquiteau/hydra-callbacks
 ```
