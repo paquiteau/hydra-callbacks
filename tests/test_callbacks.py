@@ -1,5 +1,6 @@
 """Test for callbacks.py module."""
 import os
+import shutil
 from pathlib import Path
 from textwrap import dedent
 
@@ -259,7 +260,7 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
     dirty = git.Repo().is_dirty()
 
     if not dirty:
-        os.copy("tests/test_app/dummy.txt", "tests/test_app/dummy.bak")
+        shutil.copy2("tests/test_app/dummy.txt", "tests/test_app/dummy.bak")
         # create a dummy file to make the repo dirty
         with open("dummy.txt", "w") as f:
             f.write("Dummy has changed.")
@@ -279,4 +280,4 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
     )
 
     if not dirty:
-        os.copy("tests/test_app/dummy.bak", "tests/test_app/dummy.txt")
+        shutil.copy2("tests/test_app/dummy.bak", "tests/test_app/dummy.txt")
