@@ -89,3 +89,16 @@ convention = "numpy"
 "examples/conftest.py" = ["ANN"]
 "examples/example_*.py" = ["D", "ANN"]
 "tests/test_*.py" = ["D", "ANN"]
+
+
+[tool.coverage.report]
+precision = 2
+exclude_lines = ["pragma: no cover", "raise NotImplementedError"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "--cov=hydra_callbacks",
+    "--cov-report=term-missing",
+    "--cov-report=xml"
+]
