@@ -64,7 +64,7 @@ class RuntimePerformance(AnyRunCallback):
         """Execute after any run."""
         end_time = time.perf_counter()
         duration = end_time - self.start_time
-        logging.getLogger("performance").info(f"Total runtime: {duration:.2f} seconds")
+        logging.getLogger("hydra").info(f"Total runtime: {duration:.2f} seconds")
 
 
 class GitInfo(AnyRunCallback):
@@ -84,7 +84,7 @@ class GitInfo(AnyRunCallback):
         """Execute before any run."""
         import git
 
-        log = logging.getLogger("git")
+        log = logging.getLogger("hydra")
 
         repo = git.Repo(search_parent_directories=True)
         sha = repo.head.object.hexsha
@@ -111,7 +111,7 @@ class MultiRunGatherer(Callback):
         name of the file to gathers from all the jobs.
     """
 
-    def __init__(self, result_file: str = "result.json"):
+    def __init__(self, result_file: str = "results.json"):
         self.result_file = result_file
 
     def on_multirun_end(self, config: DictConfig, **kwargs: None) -> None:

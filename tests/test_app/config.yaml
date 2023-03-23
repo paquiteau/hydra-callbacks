@@ -1,1 +1,6 @@
 foo: bar
+
+hydra:
+  callbacks:
+    empty_callback:
+      _target_: hydra_callbacks.AnyRunCallback

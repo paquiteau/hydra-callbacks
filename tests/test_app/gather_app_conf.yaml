@@ -1,0 +1,7 @@
+foo: bar
+
+hydra:
+  callbacks:
+    gather_callback:
+      _target_: hydra_callbacks.MultiRunGatherer
+      result_file: "results.json"

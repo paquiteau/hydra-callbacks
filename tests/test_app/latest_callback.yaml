@@ -6,3 +6,4 @@ hydra:
     latest_callback:
       _target_: hydra_callbacks.LatestRunLink
       run_base_dir: "outputs"
+      multirun_base_dir: "multirun"
