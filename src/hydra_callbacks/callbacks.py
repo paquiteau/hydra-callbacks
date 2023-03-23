@@ -79,7 +79,8 @@ class GitInfo(AnyRunCallback):
         repo = git.Repo(search_parent_directories=True)
         sha = repo.head.object.hexsha
         is_dirty = repo.is_dirty()
-        log.warn(f"Git sha: {sha}, dirty: {is_dirty}")
+        log.warning(f"Git sha: {sha}, dirty: {is_dirty}")
+
         if is_dirty and self.clean:
             log.error("Repo is dirty, aborting")
             # sys.exit(1) raises an error, that is catched by hydra.
