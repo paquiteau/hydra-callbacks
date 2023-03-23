@@ -259,9 +259,10 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
     dirty = git.Repo().is_dirty()
 
     if not dirty:
+        os.copy("tests/test_app/dummy.txt", "tests/test_app/dummy.bak")
         # create a dummy file to make the repo dirty
         with open("dummy.txt", "w") as f:
-            f.write("dummy")
+            f.write("Dummy has changed.")
 
     result, _err = run_python_script(cmd, raise_exception=False)
     assert _err == ""
@@ -278,5 +279,4 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
     )
 
     if not dirty:
-        # remove the dummy file
-        os.remove("dummy.txt")
+        os.copy("tests/test_app/dummy.bak", "tests/test_app/dummy.txt")
