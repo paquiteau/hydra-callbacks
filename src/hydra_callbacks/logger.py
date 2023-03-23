@@ -60,7 +60,12 @@ class PerfLogger:
         self.logger(formatted)
 
     @classmethod
-    def recap(self) -> str:
+    def recap(cls) -> str:
         """Return a string summarizing all the registered timers."""
-        self.timers["Total"] = sum(self.timers.values())
-        return ", ".join([f"{name}: {t:.2f}s" for name, t in self.timers.items()])
+        cls.timers["Total"] = sum(cls.timers.values())
+        return ", ".join([f"{name}: {t:.2f}s" for name, t in cls.timers.items()])
+
+    @classmethod
+    def reset(cls):
+        """Reset all the registered timers."""
+        cls.timers = {}
