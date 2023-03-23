@@ -256,7 +256,7 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
         "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
     ]
 
-    dirty = (str(git.Repo().is_dirty()),)
+    dirty = git.Repo().is_dirty()
 
     if not dirty:
         # create a dummy file to make the repo dirty
