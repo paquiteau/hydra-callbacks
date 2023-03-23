@@ -3,7 +3,7 @@
 
 [![style](https://img.shields.io/badge/style-black-black)](https://github.com/psf/black)
 [![framework](https://img.shields.io/badge/framework-hydra-blue)](https://hydra.cc)
-
+[![codecov](https://codecov.io/gh/paquiteau/hydra-callbacks/branch/master/graph/badge.svg?token=NEV7SY24YB)](https://codecov.io/gh/paquiteau/hydra-callbacks)
 
 A collection of usefulls callbacks for the [https://hydra.cc/](hydra) configuration framework.
 
