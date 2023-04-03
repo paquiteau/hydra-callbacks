@@ -1,16 +1,24 @@
 """Callback mechanism for hydra  jobs."""
 import os
 import errno
+import psutil
+import threading
 import json
 import glob
 
 import logging
 from hydra.experimental.callback import Callback
+from hydra.core.utils import JobReturn
 from hydra.utils import to_absolute_path
+from hydra.types import TaskFunction
 from omegaconf import DictConfig, open_dict
 
 import pandas as pd
+import numpy as np
 import time
+
+
+_MB = 1024.0**2
 
 
 class AnyRunCallback(Callback):
@@ -176,3 +184,199 @@ class LatestRunLink(Callback):
                 os.symlink(src, dest)
             else:
                 raise e  # pragma: no cover
+
+
+class ResourceMonitorThread(threading.Thread):
+    """
+    A ``Thread`` to monitor a specific PID with a certain frequency to a file.
+
+    Adapted from: https://github.com/nipy/nipype/blob/master/nipype/utils/profiler.py
+
+    Parameters
+    ----------
+    pid: int
+        The process ID to monitor
+    sample_period: float
+        The time interval at wat which to sample the process
+    fname: str
+    """
+
+    def __init__(self, pid: int, sample_period: int | float = 5, base_name: str = None):
+        # Make sure psutil is imported
+        import psutil
+
+        if sample_period < 0.2:
+            raise RuntimeError(
+                "Frequency (%0.2fs) cannot be lower than 0.2s" % sample_period
+            )
+
+        fname = f"p{pid}_t{time()}_f{sample_period}"
+        fname = ".{base_name}_{fname}" if base_name else f".{fname}"
+
+        self._fname = os.path.abspath(fname)
+        self._logfile = open(self._fname, "w")
+        self._sampletime = sample_period
+
+        # Leave process initialized and make first sample
+        self._process = psutil.Process(pid)
+        self._sample(cpu_interval=0.2)
+
+        # Start thread
+        threading.Thread.__init__(self)
+        self._event = threading.Event()
+
+    @property
+    def fname(self) -> str:
+        """Get the internal filename."""
+        return self._fname
+
+    def _sample(self, cpu_interval: float = None) -> None:
+        cpu = 0.0
+        rss = 0.0
+        vms = 0.0
+        try:
+            with self._process.oneshot():
+                cpu += self._process.cpu_percent(interval=cpu_interval)
+                mem_info = self._process.memory_info()
+                rss += mem_info.rss
+                vms += mem_info.vms
+        except psutil.NoSuchProcess:
+            pass
+
+        # Iterate through child processes and get number of their threads
+        try:
+            children = self._process.children(recursive=True)
+        except psutil.NoSuchProcess:
+            children = []
+
+        for child in children:
+            try:
+                with child.oneshot():
+                    cpu += child.cpu_percent()
+                    mem_info = child.memory_info()
+                    rss += mem_info.rss
+                    vms += mem_info.vms
+            except psutil.NoSuchProcess:
+                pass
+
+        print(f"{time()}, {cpu}, {rss / _MB}, {vms / _MB}", file=self._logfile)
+        self._logfile.flush()
+
+    def run(self) -> None:
+        """
+        Core monitoring function.
+
+        Called by the ``start()`` method of threading.Thread.
+        """
+        start_time = time()
+        wait_til = start_time
+        while not self._event.is_set():
+            self._sample()
+            wait_til += self._sampletime
+            self._event.wait(max(0, wait_til - time()))
+
+    def stop(self) -> dict[str, float | None]:
+        """Stop monitoring."""
+        if not self._event.is_set():
+            self._event.set()
+            self.join()
+            self._sample()
+            self._logfile.flush()
+            self._logfile.close()
+
+        retval = {
+            "mem_peak_gb": None,
+            "cpu_percent": None,
+        }
+
+        # Read .prof file in and set runtime values
+        vals = np.loadtxt(self._fname, delimiter=",")
+        if vals.size:
+            vals = np.atleast_2d(vals)
+            retval["mem_peak_gb"] = vals[:, 2].max() / 1024
+            retval["cpu_peak_percent"] = vals[:, 1].max()
+            retval["prof_dict"] = {
+                "time": vals[:, 0],
+                "cpus": vals[:, 1],
+                "rss_GiB": vals[:, 2] / 1024,
+                "vms_GiB": vals[:, 3] / 1024,
+            }
+        return retval
+
+
+class RessourceMonitor(AnyRunCallback):
+    """Callback that samples the cpu and memory usage during job execution.
+
+    The collected  data (cpu percent, memory usage) is written to a csv file.
+
+    TODO: Add GPU support.
+
+    Parameters
+    ----------
+    enabled : bool
+        if True, will log the total runtime.
+    """
+
+    def __init__(
+        self,
+        enabled: bool = True,
+        sample_interval: float = 0.1,
+        monitoring_file: str = "resource_monitoring.csv",
+    ):
+        self.enabled = enabled
+        if not self.enabled:
+            self.on_job_start = lambda *args, **kwargs: None
+            self.on_job_end = lambda *args, **kwargs: None
+            return
+
+        self.sample_interval = sample_interval
+        self.monitoring_file = monitoring_file
+
+    def on_run_start(self, config: DictConfig, **kwargs: None) -> None:
+        """Execute after a single run."""
+        self._on_anyrun_start(config.hydra.run.dir)
+
+    def on_multirun_start(self, config: DictConfig, **kwargs: None) -> None:
+        """Execute after a multi run."""
+        self._on_anyrun_start(config.hydra.sweep.dir)
+
+    def _on_anyrun_start(self, run_dir: str) -> None:
+        """Configure the path for the monitoring file."""
+        self.monitoring_file = os.path.join(
+            to_absolute_path(run_dir), self.monitoring_file
+        )
+
+    def on_job_start(
+        self, config: DictConfig, *, task_function: TaskFunction, **kwargs: None
+    ) -> None:
+        """Execute before a single job."""
+        job_full_id = f"{config.hydra.job.name}_{config.hydra.job.id}"
+        self._monitor[job_full_id] = ResourceMonitorThread(
+            os.getpid(),
+            sample_period=self.sample_interval,
+            base_name=job_full_id,
+        )
+        self._monitor[job_full_id].start()
+
+    def on_job_end(
+        self,
+        config: DictConfig,
+        job_return: JobReturn,
+        **kwargs: None,
+    ) -> None:
+        """Execute after a single job."""
+        sampled_data = self._monitor[
+            f"{config.hydra.job.name}_{config.hydra.job.id}"
+        ].stop()
+
+        del self._monitor[f"{config.hydra.job.name}_{config.hydra.job.id}"]
+        sampled_data["prof_dict"]["job_name"] = config.hydra.job.name
+        sampled_data["prof_dict"]["job_id"] = config.hydra.job.id
+
+        df = pd.DataFrame(sampled_data["prof_dict"])
+
+        df.to_csv(
+            self.monitoring_file,
+            mode="a",
+            header=not os.path.exists(self.monitoring_file),
+        )

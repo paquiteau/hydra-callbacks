@@ -41,6 +41,8 @@ dependencies = [
   "hydra-core",
   "GitPython",
   "pandas",
+  "numpy",
+  "psutil",
 ]
 
 [project.optional-dependencies]
