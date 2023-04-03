@@ -210,7 +210,7 @@ class ResourceMonitorThread(threading.Thread):
                 "Frequency (%0.2fs) cannot be lower than 0.2s" % sample_period
             )
 
-        fname = f"p{pid}_t{time()}_f{sample_period}"
+        fname = f"p{pid}_t{time.time()}_f{sample_period}"
         fname = ".{base_name}_{fname}" if base_name else f".{fname}"
 
         self._fname = os.path.abspath(fname)
@@ -259,7 +259,7 @@ class ResourceMonitorThread(threading.Thread):
             except psutil.NoSuchProcess:
                 pass
 
-        print(f"{time()}, {cpu}, {rss / _MB}, {vms / _MB}", file=self._logfile)
+        print(f"{time.time()}, {cpu}, {rss / _MB}, {vms / _MB}", file=self._logfile)
         self._logfile.flush()
 
     def run(self) -> None:
@@ -268,12 +268,12 @@ class ResourceMonitorThread(threading.Thread):
 
         Called by the ``start()`` method of threading.Thread.
         """
-        start_time = time()
+        start_time = time.time()
         wait_til = start_time
         while not self._event.is_set():
             self._sample()
             wait_til += self._sampletime
-            self._event.wait(max(0, wait_til - time()))
+            self._event.wait(max(0, wait_til - time.time()))
 
     def stop(self) -> dict[str, float | None]:
         """Stop monitoring."""
