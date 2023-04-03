@@ -236,23 +236,23 @@ class ResourceMonitorThread(threading.Thread):
                 mem_info = self._process.memory_info()
                 rss += mem_info.rss
                 vms += mem_info.vms
-        except psutil.NoSuchProcess:
+        except psutil.NoSuchProcess:  # pragma: no cover
             pass
 
         # Iterate through child processes and get number of their threads
         try:
             children = self._process.children(recursive=True)
-        except psutil.NoSuchProcess:
+        except psutil.NoSuchProcess:  # pragma: no cover
             children = []
 
         for child in children:
-            try:
+            try:  # pragma: no cover
                 with child.oneshot():
                     cpu += child.cpu_percent()
                     mem_info = child.memory_info()
                     rss += mem_info.rss
                     vms += mem_info.vms
-            except psutil.NoSuchProcess:
+            except psutil.NoSuchProcess:  # pragma: no cover
                 pass
 
         print(f"{time.time()}, {cpu}, {rss / _MB}, {vms / _MB}", file=self._logfile)
