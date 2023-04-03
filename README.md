@@ -33,12 +33,12 @@ hydra:
 
 ## Available Callbacks 
 
-| Name               | Action                                     | Author                                    |
-|:-------------------|:-------------------------------------------|-------------------------------------------|
-| GitInfo            | Check status of Repository                 | [paquiteau](https://github.com/paquiteau) |
-| LatestRunLink      | Get a link to the latest run               | [paquiteau](https://github.com/paquiteau) |
-| MultiRunGatherer   | Gather results json file in a single table | [paquiteau](https://github.com/paquiteau) |
-| RuntimePerformance | Get Execution time for each run            | [paquiteau](https://github.com/paquiteau) |
+| Name               | Action                                     |
+|:-------------------|:-------------------------------------------|
+| GitInfo            | Check status of Repository                 |
+| LatestRunLink      | Get a link to the latest run               |
+| MultiRunGatherer   | Gather results json file in a single table |
+| RuntimePerformance | Get Execution time for each run            |
 
 And more to come ! 
 
@@ -66,3 +66,6 @@ def main_app(cfg):
 
 Open a PR or an issue !
 
+### Possible Ideas
+- [In progress] A Ressource Monitoring Callback 
+- A callback that summarize log from multiple runs
