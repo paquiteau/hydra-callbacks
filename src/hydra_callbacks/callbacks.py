@@ -354,7 +354,7 @@ class RessourceMonitor(AnyRunCallback):
         self, config: DictConfig, *, task_function: TaskFunction, **kwargs: None
     ) -> None:
         """Execute before a single job."""
-        job_full_id = f"{config.hydra.job.name}_{config.hydra.job.id}"
+        job_full_id = self._get_job_id(config)
         self._monitor[job_full_id] = ResourceMonitorThread(
             os.getpid(),
             sample_period=self.sample_interval,
@@ -369,13 +369,12 @@ class RessourceMonitor(AnyRunCallback):
         **kwargs: None,
     ) -> None:
         """Execute after a single job."""
-        sampled_data = self._monitor[
-            f"{config.hydra.job.name}_{config.hydra.job.id}"
-        ].stop()
+        job_full_id = self._get_job_id(config)
+        sampled_data = self._monitor[job_full_id].stop()
 
-        del self._monitor[f"{config.hydra.job.name}_{config.hydra.job.id}"]
+        del self._monitor[job_full_id]
         sampled_data["prof_dict"]["job_name"] = config.hydra.job.name
-        sampled_data["prof_dict"]["job_id"] = config.hydra.job.id
+        sampled_data["prof_dict"]["job_id"] = config.hydra.job.num
 
         df = pd.DataFrame(sampled_data["prof_dict"])
 
@@ -384,3 +383,7 @@ class RessourceMonitor(AnyRunCallback):
             mode="a",
             header=not os.path.exists(self.monitoring_file),
         )
+
+    def _get_job_id(self, cfg: DictConfig) -> str:
+        """Get the job id."""
+        return f"{cfg.hydra.job.name}_{cfg.hydra.job.num}"
