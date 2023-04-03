@@ -1,0 +1,8 @@
+foo: bar
+
+hydra:
+  callbacks:
+    ressource_monitor:
+      _target_: hydra_callbacks.RessourceMonitor
+      enabled: true
+      sample_interval: 1

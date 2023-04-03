@@ -96,6 +96,7 @@ def test_app_with_callback_logs(
     ]
     cmd.extend(args)
     result, _err = run_python_script(cmd)
+    assert _err == ""
     assert_regex_match(expected, result)
 
 
@@ -194,6 +195,7 @@ def test_latest_callback(tmpdir: Path, multirun: bool) -> None:
     ]
     cmd.insert(2, "--multirun") if multirun else None
     result, _err = run_python_script(cmd)
+    assert _err == ""
     assert_regex_match(
         (HYDRA_LAUNCH_LOG if multirun else "")
         + dedent(
@@ -228,7 +230,7 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
         "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
     ]
     result, _err = run_python_script(cmd)
-
+    assert _err == ""
     assert_regex_match(
         result,
         dedent(
@@ -288,3 +290,70 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
             )
         ),
     )
+
+
+@pytest.mark.parametrize("multirun", [True, False])
+def test_ressource_monitor(tmpdir: Path, multirun) -> None:
+    """Test for resource monitor callback."""
+
+    cmd = [
+        "tests/test_app/dummy_app.py",
+        "--config-name=ressource_monitor.yaml",
+        "hydra.sweep.dir=" + str(tmpdir),
+        "hydra.run.dir=" + str(tmpdir),
+        "hydra.job.chdir=True",
+        "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
+        "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
+    ]
+    if multirun:
+        cmd.insert(2, "--multirun")
+    result, _err = run_python_script(cmd)
+    assert_regex_match(
+        result,
+        (HYDRA_LAUNCH_LOG if multirun else "")
+        + dedent(
+            """\
+        [JOB] foo: bar
+
+        [{logger}] Writing monitoring data to {tmpdir}/resource_monitoring.csv
+        """.format(
+                tmpdir=tmpdir, logger="HYDRA" if multirun else "JOB"
+            )
+        ),
+    )
+
+
+def test_ressource_monitor_disabled(tmpdir):
+
+    cmd = [
+        "tests/test_app/dummy_app.py",
+        "--config-name=ressource_monitor.yaml",
+        "hydra.callbacks.ressource_monitor.enabled=False",
+        "hydra.sweep.dir=" + str(tmpdir),
+        "hydra.run.dir=" + str(tmpdir),
+        "hydra.job.chdir=True",
+        "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
+        "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
+    ]
+
+    result, _err = run_python_script(cmd)
+
+    assert_regex_match(result, "[JOB] foo: bar")
+
+
+def test_ressource_monitor_raises(tmpdir):
+
+    cmd = [
+        "tests/test_app/dummy_app.py",
+        "--config-name=ressource_monitor.yaml",
+        "hydra.callbacks.ressource_monitor.sample_interval=0.1",
+        "hydra.sweep.dir=" + str(tmpdir),
+        "hydra.run.dir=" + str(tmpdir),
+        "hydra.job.chdir=True",
+        "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
+        "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
+    ]
+
+    result, _err = run_python_script(cmd, raise_exception=False)
+
+    assert "RuntimeError: Frequency (0.10s) cannot be lower than 0.2s" in _err
