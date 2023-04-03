@@ -197,11 +197,11 @@ class ResourceMonitorThread(threading.Thread):
     pid: int
         The process ID to monitor
     sample_period: float
-        The time interval at wat which to sample the process
+        The time interval at wat which to sample the process, in seconds.
     fname: str
     """
 
-    def __init__(self, pid: int, sample_period: int | float = 5, base_name: str = None):
+    def __init__(self, pid: int, sample_period: int | float = 1, base_name: str = None):
         # Make sure psutil is imported
         import psutil
 
@@ -315,12 +315,16 @@ class RessourceMonitor(AnyRunCallback):
     ----------
     enabled : bool
         if True, will log the total runtime.
+    sample_interval : float or int
+        The time interval at wat which to sample the process, in seconds.
+    monitoring_file : str
+        The file to write the monitoring data to.
     """
 
     def __init__(
         self,
         enabled: bool = True,
-        sample_interval: float = 0.1,
+        sample_interval: float = 1,
         monitoring_file: str = "resource_monitoring.csv",
     ):
         self.enabled = enabled
