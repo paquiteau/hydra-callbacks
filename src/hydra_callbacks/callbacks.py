@@ -225,11 +225,6 @@ class ResourceMonitorThread(threading.Thread):
         threading.Thread.__init__(self)
         self._event = threading.Event()
 
-    @property
-    def fname(self) -> str:
-        """Get the internal filename."""
-        return self._fname
-
     def _sample(self, cpu_interval: float = None) -> None:
         cpu = 0.0
         rss = 0.0
