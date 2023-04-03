@@ -4,13 +4,18 @@
 [![style](https://img.shields.io/badge/style-black-black)](https://github.com/psf/black)
 [![framework](https://img.shields.io/badge/framework-hydra-blue)](https://hydra.cc)
 [![codecov](https://codecov.io/gh/paquiteau/hydra-callbacks/branch/master/graph/badge.svg?token=NEV7SY24YB)](https://codecov.io/gh/paquiteau/hydra-callbacks)
+[![CD](https://github.com/paquiteau/hydra-callbacks/actions/workflows/master-cd.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/master-cd.yml)
+[![CI](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml)
 
 A collection of usefulls callbacks for the [https://hydra.cc/](hydra) configuration framework.
 
 
 ## Installation 
+``` shell 
+pip install hydra-callbacks
+```
 
-
+Development version 
 ``` shell
 pip install git+https://github.com/paquiteau/hydra-callbacks
 ```
