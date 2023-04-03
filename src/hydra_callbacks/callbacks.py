@@ -325,8 +325,11 @@ class RessourceMonitor(AnyRunCallback):
     ):
         self.enabled = enabled
         if not self.enabled:
+            # don't do anything if not enabled
             self.on_job_start = lambda *args, **kwargs: None
             self.on_job_end = lambda *args, **kwargs: None
+            self._on_anyrun_start = lambda *args, **kwargs: None
+            self._on_anyrun_end = lambda *args, **kwargs: None
             return
 
         self.sample_interval = sample_interval
