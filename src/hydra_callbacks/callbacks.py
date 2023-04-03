@@ -349,6 +349,13 @@ class RessourceMonitor(AnyRunCallback):
         self.monitoring_file = os.path.join(
             to_absolute_path(run_dir), self.monitoring_file
         )
+        self._monitor = {}
+
+    def _on_anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
+        """Run on any run end."""
+        logging.getLogger("hydra").info(
+            f"Writing monitoring data to {self.monitoring_file}"
+        )
 
     def on_job_start(
         self, config: DictConfig, *, task_function: TaskFunction, **kwargs: None
