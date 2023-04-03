@@ -9,6 +9,7 @@ import glob
 import logging
 from hydra.experimental.callback import Callback
 from hydra.core.utils import JobReturn
+from hydra.core.hydra_config import HydraConfig
 from hydra.utils import to_absolute_path
 from hydra.types import TaskFunction
 from omegaconf import DictConfig, open_dict
@@ -356,7 +357,7 @@ class RessourceMonitor(AnyRunCallback):
         self, config: DictConfig, *, task_function: TaskFunction, **kwargs: None
     ) -> None:
         """Execute before a single job."""
-        job_full_id = self._get_job_id(config)
+        job_full_id = self._get_job_info()
         self._monitor[job_full_id] = ResourceMonitorThread(
             os.getpid(),
             sample_period=self.sample_interval,
@@ -371,12 +372,12 @@ class RessourceMonitor(AnyRunCallback):
         **kwargs: None,
     ) -> None:
         """Execute after a single job."""
-        job_full_id = self._get_job_id(config)
+        job_full_id = self._get_job_info()
         sampled_data = self._monitor[job_full_id].stop()
 
         del self._monitor[job_full_id]
-        sampled_data["prof_dict"]["job_name"] = config.hydra.job.name
-        sampled_data["prof_dict"]["job_id"] = config.hydra.job.num
+        sampled_data["prof_dict"]["job_name"] = job_full_id[0]
+        sampled_data["prof_dict"]["job_id"] = job_full_id[1]
 
         df = pd.DataFrame(sampled_data["prof_dict"])
 
@@ -386,6 +387,9 @@ class RessourceMonitor(AnyRunCallback):
             header=not os.path.exists(self.monitoring_file),
         )
 
-    def _get_job_id(self, cfg: DictConfig) -> str:
+    def _get_job_info(self) -> str:
         """Get the job id."""
-        return f"{cfg.hydra.job.name}_{cfg.hydra.job.num}"
+        hconf = HydraConfig.get()
+        name = hconf.job.name
+        id = hconf.job.get("id", 0)
+        return name, id
