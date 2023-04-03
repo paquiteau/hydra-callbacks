@@ -1,19 +1,20 @@
 """A collection of Hydra callbacks for logging and performance analysis."""
 from .callbacks import (
     AnyRunCallback,
-    RuntimePerformance,
     GitInfo,
-    MultiRunGatherer,
     LatestRunLink,
+    MultiRunGatherer,
+    RessourceMonitor,
+    RuntimePerformance,
 )
 from .logger import PerfLogger
-
 
 __all__ = [
     "AnyRunCallback",
     "RuntimePerformance",
     "GitInfo",
     "MultiRunGatherer",
+    "RessourceMonitor",
     "LatestRunLink",
     "PerfLogger",
 ]
@@ -26,7 +27,8 @@ try:
 except ImportError:  # pragma: no cover
     # -- Source mode --
     # use setuptools_scm to get the current version from src using git
-    from setuptools_scm import get_version as _gv
     from os import path as _path
+
+    from setuptools_scm import get_version as _gv
 
     __version__ = _gv(_path.join(_path.dirname(__file__), _path.pardir))
