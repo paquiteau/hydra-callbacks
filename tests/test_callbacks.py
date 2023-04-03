@@ -3,7 +3,7 @@ import os
 import shutil
 from pathlib import Path
 from textwrap import dedent
-
+import contextlib
 import pytest
 import git
 from hydra.test_utils.test_utils import (
@@ -13,6 +13,20 @@ from hydra.test_utils.test_utils import (
 )
 
 _chdir_to_dir_containing("pyproject.toml")
+
+
+@contextlib.contextmanager
+def chdirto(new_dir) -> None:
+    """Very simple context manager to change directory temporarly.
+
+    https://stackoverflow.com/a/75049063
+    """
+    d = os.getcwd()
+    os.chdir(new_dir)
+    try:
+        yield
+    finally:
+        os.chdir(d)
 
 
 HYDRA_LAUNCH_LOG = "[HYDRA] Launching 1 jobs locally\n[HYDRA] 	#0 : \n"
@@ -241,13 +255,6 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
 def test_dirty_git_repo_error(tmpdir: Path) -> None:
     """Test for dirty git repo error."""
 
-    shutil.copytree("tests/test_app/", tmpdir / "test_app")
-    os.chdir(tmpdir / "test_app")
-    # create a fake temporary repo.
-    testapp = git.Repo.init()
-    testapp.git.add(".")
-    testapp.index.commit("Initial commit")
-
     cmd = [
         "dummy_app.py",
         "--config-name=git_callback.yaml",
@@ -256,10 +263,19 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
         "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
     ]
 
-    with open(tmpdir / "test_app/dummy.txt", "w") as f:
-        f.write("Dummy has changed.")
-
-    result, _err = run_python_script(cmd, raise_exception=False)
+    app_dir = tmpdir / "test_app"
+    shutil.copytree("tests/test_app/", app_dir)
+    # work in fake temporary repo.
+    with chdirto(app_dir):
+        testapp = git.Repo.init()
+        testapp.git.add(".")
+        testapp.index.commit("Initial commit")
+        sha = testapp.head.object.hexsha
+        # make the repo dirty
+        with open("dummy.txt", "w") as f:
+            f.write("Dummy has changed.")
+        # run the test app.
+        result, _err = run_python_script(cmd, raise_exception=False)
     assert _err == ""
     assert_regex_match(
         result,
@@ -268,7 +284,7 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
                 [HYDRA] Git sha: {sha}, dirty: True
                 [HYDRA] Repo is dirty, aborting
                 """.format(
-                sha=git.Repo().head.object.hexsha,
+                sha=sha,
             )
         ),
     )
