@@ -23,7 +23,7 @@ pip install git+https://github.com/paquiteau/hydra-callbacks
 
 ## Usage 
 
-In your hydra root config file add the following: 
+In your hydra root config file add the following, or analoguous:
 
 ``` yaml
 hydra: 
@@ -36,15 +36,17 @@ hydra:
       _target_: hydra_callbacks.LatestRunLink
 ```
 
+Examples of configuration for each callback is available in the `tests/test_app/` folder.
 
 ## Available Callbacks 
 
-| Name               | Action                                     |
-|:-------------------|:-------------------------------------------|
-| GitInfo            | Check status of Repository                 |
-| LatestRunLink      | Get a link to the latest run               |
-| MultiRunGatherer   | Gather results json file in a single table |
-| RuntimePerformance | Get Execution time for each run            |
+| Name               | Action                                             |
+|:-------------------|:---------------------------------------------------|
+| GitInfo            | Check status of Repository                         |
+| LatestRunLink      | Get a link to the latest run                       |
+| MultiRunGatherer   | Gather results json file in a single table         |
+| RuntimePerformance | Get Execution time for each run                    |
+| ResourceMonitor    | Monitor resources of running jobs (CPU and Memory) |
 
 And more to come ! 
 
@@ -73,5 +75,4 @@ def main_app(cfg):
 Open a PR or an issue !
 
 ### Possible Ideas
-- [In progress] A Ressource Monitoring Callback 
 - A callback that summarize log from multiple runs
