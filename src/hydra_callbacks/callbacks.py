@@ -18,8 +18,7 @@ import pandas as pd
 import numpy as np
 import time
 
-
-_MB = 1024.0**2
+from .monitor import ResourceMonitorService
 
 
 class AnyRunCallback(Callback):
@@ -187,119 +186,6 @@ class LatestRunLink(Callback):
                 raise e  # pragma: no cover
 
 
-class ResourceMonitorThread(threading.Thread):
-    """
-    A ``Thread`` to monitor a specific PID with a certain frequency to a file.
-
-    Adapted from: https://github.com/nipy/nipype/blob/master/nipype/utils/profiler.py
-
-    Parameters
-    ----------
-    pid: int
-        The process ID to monitor
-    sample_period: float
-        The time interval at wat which to sample the process, in seconds.
-    fname: str
-    """
-
-    def __init__(self, pid: int, sample_period: int | float = 1, base_name: str = None):
-        # Make sure psutil is imported
-        import psutil
-
-        if sample_period < 0.2:
-            raise RuntimeError(
-                "Frequency (%0.2fs) cannot be lower than 0.2s" % sample_period
-            )
-
-        fname = f"p{pid}_t{time.time()}_f{sample_period}"
-        fname = ".{base_name}_{fname}" if base_name else f".{fname}"
-
-        self._fname = os.path.abspath(fname)
-        self._logfile = open(self._fname, "w")
-        self._sampletime = sample_period
-
-        # Leave process initialized and make first sample
-        self._process = psutil.Process(pid)
-        self._sample(cpu_interval=0.2)
-
-        # Start thread
-        threading.Thread.__init__(self)
-        self._event = threading.Event()
-
-    def _sample(self, cpu_interval: float = None) -> None:
-        cpu = 0.0
-        rss = 0.0
-        vms = 0.0
-        try:
-            with self._process.oneshot():
-                cpu += self._process.cpu_percent(interval=cpu_interval)
-                mem_info = self._process.memory_info()
-                rss += mem_info.rss
-                vms += mem_info.vms
-        except psutil.NoSuchProcess:  # pragma: no cover
-            pass
-
-        # Iterate through child processes and get number of their threads
-        try:
-            children = self._process.children(recursive=True)
-        except psutil.NoSuchProcess:  # pragma: no cover
-            children = []
-
-        for child in children:
-            try:  # pragma: no cover
-                with child.oneshot():
-                    cpu += child.cpu_percent()
-                    mem_info = child.memory_info()
-                    rss += mem_info.rss
-                    vms += mem_info.vms
-            except psutil.NoSuchProcess:  # pragma: no cover
-                pass
-
-        print(f"{time.time()}, {cpu}, {rss / _MB}, {vms / _MB}", file=self._logfile)
-        self._logfile.flush()
-
-    def run(self) -> None:
-        """
-        Core monitoring function.
-
-        Called by the ``start()`` method of threading.Thread.
-        """
-        start_time = time.time()
-        wait_til = start_time
-        while not self._event.is_set():
-            self._sample()
-            wait_til += self._sampletime
-            self._event.wait(max(0, wait_til - time.time()))
-
-    def stop(self) -> dict[str, float | None]:
-        """Stop monitoring."""
-        if not self._event.is_set():
-            self._event.set()
-            self.join()
-            self._sample()
-            self._logfile.flush()
-            self._logfile.close()
-
-        retval = {
-            "mem_peak_gb": None,
-            "cpu_percent": None,
-        }
-
-        # Read .prof file in and set runtime values
-        vals = np.loadtxt(self._fname, delimiter=",")
-        if vals.size:
-            vals = np.atleast_2d(vals)
-            retval["mem_peak_gb"] = vals[:, 2].max() / 1024
-            retval["cpu_peak_percent"] = vals[:, 1].max()
-            retval["prof_dict"] = {
-                "time": vals[:, 0],
-                "cpus": vals[:, 1],
-                "rss_GiB": vals[:, 2] / 1024,
-                "vms_GiB": vals[:, 3] / 1024,
-            }
-        return retval
-
-
 class RessourceMonitor(AnyRunCallback):
     """Callback that samples the cpu and memory usage during job execution.
 
@@ -361,10 +247,10 @@ class RessourceMonitor(AnyRunCallback):
     ) -> None:
         """Execute before a single job."""
         job_full_id = self._get_job_info()
-        self._monitor[job_full_id] = ResourceMonitorThread(
+        self._monitor[job_full_id] = ResourceMonitorService(
             os.getpid(),
-            sample_period=self.sample_interval,
-            base_name=job_full_id,
+            interval=self.sample_interval,
+            base_name=f"{job_full_id[0]},{job_full_id[1]}",
         )
         self._monitor[job_full_id].start()
 
@@ -383,7 +269,6 @@ class RessourceMonitor(AnyRunCallback):
         sampled_data["prof_dict"]["job_id"] = job_full_id[1]
 
         df = pd.DataFrame(sampled_data["prof_dict"])
-
         df.to_csv(
             self.monitoring_file,
             mode="a",
