@@ -1,7 +1,6 @@
 """Ressource Monitor Utilities."""
 import multiprocessing
 import os
-import threading
 import time
 from typing import Callable
 
