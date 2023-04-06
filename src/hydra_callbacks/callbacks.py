@@ -182,7 +182,7 @@ class LatestRunLink(Callback):
                 raise e  # pragma: no cover
 
 
-class RessourceMonitor(AnyRunCallback):
+class ResourceMonitor(AnyRunCallback):
     """Callback that samples the cpu and memory usage during job execution.
 
     The collected  data (cpu percent, memory usage) is written to a csv file.

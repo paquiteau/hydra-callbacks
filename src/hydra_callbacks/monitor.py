@@ -1,4 +1,4 @@
-"""Ressource Monitor Utilities."""
+"""Resource Monitor Utilities."""
 import multiprocessing
 import os
 import time

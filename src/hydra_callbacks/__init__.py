@@ -4,7 +4,7 @@ from .callbacks import (
     GitInfo,
     LatestRunLink,
     MultiRunGatherer,
-    RessourceMonitor,
+    ResourceMonitor,
     RuntimePerformance,
 )
 from .logger import PerfLogger
@@ -14,7 +14,7 @@ __all__ = [
     "RuntimePerformance",
     "GitInfo",
     "MultiRunGatherer",
-    "RessourceMonitor",
+    "ResourceMonitor",
     "LatestRunLink",
     "PerfLogger",
 ]

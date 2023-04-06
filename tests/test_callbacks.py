@@ -296,12 +296,12 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
 
 
 @pytest.mark.parametrize("multirun", [True, False])
-def test_ressource_monitor(tmpdir: Path, multirun) -> None:
+def test_resource_monitor(tmpdir: Path, multirun) -> None:
     """Test for resource monitor callback."""
 
     cmd = [
         "tests/test_app/dummy_app.py",
-        "--config-name=ressource_monitor.yaml",
+        "--config-name=resource_monitor.yaml",
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.run.dir=" + str(tmpdir),
         "hydra.job.chdir=True",
@@ -326,12 +326,12 @@ def test_ressource_monitor(tmpdir: Path, multirun) -> None:
     )
 
 
-def test_ressource_monitor_disabled(tmpdir):
+def test_resource_monitor_disabled(tmpdir):
 
     cmd = [
         "tests/test_app/dummy_app.py",
-        "--config-name=ressource_monitor.yaml",
-        "hydra.callbacks.ressource_monitor.enabled=False",
+        "--config-name=resource_monitor.yaml",
+        "hydra.callbacks.resource_monitor.enabled=False",
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.run.dir=" + str(tmpdir),
         "hydra.job.chdir=True",
@@ -344,12 +344,12 @@ def test_ressource_monitor_disabled(tmpdir):
     assert_regex_match(result, "[JOB] foo: bar")
 
 
-def test_ressource_monitor_raises(tmpdir):
+def test_resource_monitor_raises(tmpdir):
 
     cmd = [
         "tests/test_app/dummy_app.py",
-        "--config-name=ressource_monitor.yaml",
-        "hydra.callbacks.ressource_monitor.sample_interval=0.1",
+        "--config-name=resource_monitor.yaml",
+        "hydra.callbacks.resource_monitor.sample_interval=0.1",
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.run.dir=" + str(tmpdir),
         "hydra.job.chdir=True",
@@ -362,13 +362,13 @@ def test_ressource_monitor_raises(tmpdir):
     assert "RuntimeError: Sampling interval (0.10s) cannot be lower than 0.2s" in _err
 
 
-def test_ressource_monitor_results(tmpdir: Path) -> None:
+def test_resource_monitor_results(tmpdir: Path) -> None:
     """Test for resource monitor callback."""
     sampling_time = 0.3  # seconds
     cmd = [
         "tests/test_app/perf_app.py",
-        "--config-name=ressource_monitor.yaml",
-        "hydra.callbacks.ressource_monitor.sample_interval=" + str(sampling_time),
+        "--config-name=resource_monitor.yaml",
+        "hydra.callbacks.resource_monitor.sample_interval=" + str(sampling_time),
         "hydra.sweep.dir=" + str(tmpdir),
         "hydra.run.dir=" + str(tmpdir),
         "hydra.job.chdir=True",
