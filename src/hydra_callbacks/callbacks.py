@@ -1,22 +1,18 @@
 """Callback mechanism for hydra  jobs."""
-import os
 import errno
-import psutil
-import threading
-import json
 import glob
-
+import json
 import logging
-from hydra.experimental.callback import Callback
-from hydra.core.utils import JobReturn
-from hydra.core.hydra_config import HydraConfig
-from hydra.utils import to_absolute_path
-from hydra.types import TaskFunction
-from omegaconf import DictConfig, open_dict
+import os
+import time
 
 import pandas as pd
-import numpy as np
-import time
+from hydra.core.hydra_config import HydraConfig
+from hydra.core.utils import JobReturn
+from hydra.experimental.callback import Callback
+from hydra.types import TaskFunction
+from hydra.utils import to_absolute_path
+from omegaconf import DictConfig, open_dict
 
 from .monitor import ResourceMonitorService
 
