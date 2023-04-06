@@ -12,6 +12,9 @@ from hydra.test_utils.test_utils import (
     run_python_script,
 )
 
+import pandas as pd
+import numpy as np
+
 _chdir_to_dir_containing("pyproject.toml")
 
 
@@ -356,4 +359,28 @@ def test_ressource_monitor_raises(tmpdir):
 
     result, _err = run_python_script(cmd, raise_exception=False)
 
-    assert "RuntimeError: Frequency (0.10s) cannot be lower than 0.2s" in _err
+    assert "RuntimeError: Sampling interval (0.10s) cannot be lower than 0.2s" in _err
+
+
+def test_ressource_monitor_results(tmpdir: Path) -> None:
+    """Test for resource monitor callback."""
+    sampling_time = 0.3  # seconds
+    cmd = [
+        "tests/test_app/perf_app.py",
+        "--config-name=ressource_monitor.yaml",
+        "hydra.callbacks.ressource_monitor.sample_interval=" + str(sampling_time),
+        "hydra.sweep.dir=" + str(tmpdir),
+        "hydra.run.dir=" + str(tmpdir),
+        "hydra.job.chdir=True",
+        "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
+        "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
+    ]
+
+    result, _err = run_python_script(cmd, raise_exception=False)
+
+    df = pd.read_csv(tmpdir / "resource_monitoring.csv", index_col=0)
+    # check that the sampling interval is respected
+    assert len(df) > 3 / 0.3
+    np.testing.assert_allclose(df["time"].diff().mean(), sampling_time, rtol=0.05)
+    # check that we got some activity on the cpu.
+    assert df["cpus"].mean() > 0
