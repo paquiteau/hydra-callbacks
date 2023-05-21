@@ -4,6 +4,7 @@ import glob
 import json
 import logging
 import os
+from pathlib import Path
 import time
 
 import pandas as pd
@@ -140,6 +141,7 @@ class MultiRunGatherer(Callback):
                     results.append(loaded)
         df = pd.DataFrame(results)
         df.to_csv("agg_results.csv")
+        callback_logger.info(f"Gathered results in {Path.cwd() / 'agg_results.csv'}")
 
 
 class LatestRunLink(Callback):
