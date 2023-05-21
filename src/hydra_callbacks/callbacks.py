@@ -16,16 +16,20 @@ from omegaconf import DictConfig, open_dict
 
 from .monitor import ResourceMonitorService
 
+callback_logger = logging.getLogger("hydra.callbacks")
+
 
 class AnyRunCallback(Callback):
     """Abstract Callback that execute on any run."""
 
     def on_run_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a single run."""
+        callback_logger.debug("run start callback %s", self.__class__.__name__)
         self._on_anyrun_start(config, **kwargs)
 
     def on_multirun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a multi run."""
+        callback_logger.debug("(multi)run start callback %s", self.__class__.__name__)
         self._on_anyrun_start(config, **kwargs)
 
     def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
@@ -34,10 +38,12 @@ class AnyRunCallback(Callback):
 
     def on_run_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a single run."""
+        callback_logger.debug("run end callback %s", self.__class__.__name__)
         self._on_anyrun_end(config, **kwargs)
 
     def on_multirun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a multi run."""
+        callback_logger.debug("(multi)run end callback %s", self.__class__.__name__)
         self._on_anyrun_end(config, **kwargs)
 
     def _on_anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
@@ -68,7 +74,7 @@ class RuntimePerformance(AnyRunCallback):
         """Execute after any run."""
         end_time = time.perf_counter()
         duration = end_time - self.start_time
-        logging.getLogger("hydra").info(f"Total runtime: {duration:.2f} seconds")
+        callback_logger.info(f"Total runtime: {duration:.2f} seconds")
 
 
 class GitInfo(AnyRunCallback):
@@ -88,15 +94,13 @@ class GitInfo(AnyRunCallback):
         """Execute before any run."""
         import git
 
-        log = logging.getLogger("hydra")
-
         repo = git.Repo(search_parent_directories=True)
         sha = repo.head.object.hexsha
         is_dirty = repo.is_dirty()
-        log.warning(f"Git sha: {sha}, dirty: {is_dirty}")
+        callback_logger.warning(f"Git sha: {sha}, dirty: {is_dirty}")
 
         if is_dirty and self.clean:
-            log.error("Repo is dirty, aborting")  # pragma: no cover
+            callback_logger.error("Repo is dirty, aborting")  # pragma: no cover
             # sys.exit(1) raises an error, that is catched by hydra.
             # os._exit exits directly by stopping the process.
             os._exit(1)  # pragma: no cover
@@ -116,6 +120,7 @@ class MultiRunGatherer(Callback):
     """
 
     def __init__(self, result_file: str = "results.json"):
+        callback_logger.debug("Init %s", self.__class__.__name__)
         self.result_file = result_file
 
     def on_multirun_end(self, config: DictConfig, **kwargs: None) -> None:
@@ -151,6 +156,7 @@ class LatestRunLink(Callback):
     def __init__(
         self, run_base_dir: str = "outputs", multirun_base_dir: str = "multirun"
     ):
+        callback_logger.debug("Init %s", self.__class__.__name__)
         self.run_base_dir = to_absolute_path(run_base_dir)
         self.multirun_base_dir = to_absolute_path(multirun_base_dir)
 
@@ -168,7 +174,7 @@ class LatestRunLink(Callback):
             to_absolute_path(run_dir),
             to_absolute_path(latest_dir_path),
         )
-        logging.getLogger("hydra").info(f"Latest run is at: {latest_dir_path}")
+        callback_logger.info(f"Latest run is at: {latest_dir_path}")
 
     def _force_symlink(self, src: str, dest: str) -> None:
         """Create a symlink from src to test, overwriting dest if necessary."""
@@ -234,9 +240,7 @@ class ResourceMonitor(AnyRunCallback):
 
     def _on_anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Run on any run end."""
-        logging.getLogger("hydra").info(
-            f"Writing monitoring data to {self.monitoring_file}"
-        )
+        callback_logger.info(f"Writing monitoring data to {self.monitoring_file}")
 
     def on_job_start(
         self, config: DictConfig, *, task_function: TaskFunction, **kwargs: None
