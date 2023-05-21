@@ -23,6 +23,17 @@ callback_logger = logging.getLogger("hydra.callbacks")
 class AnyRunCallback(Callback):
     """Abstract Callback that execute on any run."""
 
+    def __init__(self, enabled: bool = True):
+        callback_logger.debug("Init %s", self.__class__.__name__)
+
+        self.enabled = enabled
+        if not self.enabled:
+            # don't do anything if not enabled
+            self.on_job_start = lambda *args, **kwargs: None
+            self.on_job_end = lambda *args, **kwargs: None
+            self._on_anyrun_start = lambda *args, **kwargs: None
+            self._on_anyrun_end = lambda *args, **kwargs: None
+
     def on_run_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a single run."""
         callback_logger.debug("run start callback %s", self.__class__.__name__)
@@ -62,10 +73,7 @@ class RuntimePerformance(AnyRunCallback):
     """
 
     def __init__(self, enabled: bool = True):
-        self.enabled = enabled
-        if not self.enabled:
-            self._on_anyrun_start = lambda *args, **kwargs: None
-            self._on_anyrun_end = lambda *args, **kwargs: None
+        super().__init__(enabled)
 
     def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before any run."""
@@ -89,6 +97,7 @@ class GitInfo(AnyRunCallback):
     """
 
     def __init__(self, clean: bool = False):
+        super().__init__()
         self.clean = clean
 
     def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
@@ -213,14 +222,7 @@ class ResourceMonitor(AnyRunCallback):
         sample_interval: float = 1,
         monitoring_file: str = "resource_monitoring.csv",
     ):
-        self.enabled = enabled
-        if not self.enabled:
-            # don't do anything if not enabled
-            self.on_job_start = lambda *args, **kwargs: None
-            self.on_job_end = lambda *args, **kwargs: None
-            self._on_anyrun_start = lambda *args, **kwargs: None
-            self._on_anyrun_end = lambda *args, **kwargs: None
-            return
+        super().__init__(enabled)
 
         self.sample_interval = sample_interval
         self.monitoring_file = monitoring_file
