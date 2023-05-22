@@ -237,7 +237,7 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
     assert_regex_match(
         result,
         dedent(
-            """
+            """\
             [HYDRA] Launching 3 jobs locally
             [HYDRA] 	#0 : +a=1
             [JOB] foo: bar
@@ -250,7 +250,11 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
             [HYDRA] 	#2 : +a=3
             [JOB] foo: bar
             a: 3
-            """
+
+            [HYDRA] Gathered results in {tmpdir}/agg_results.csv
+            """.format(
+                tmpdir=tmpdir
+            )
         ),
     )
     with open(tmpdir / "agg_results.csv") as f:
@@ -327,7 +331,6 @@ def test_resource_monitor(tmpdir: Path, multirun) -> None:
 
 
 def test_resource_monitor_disabled(tmpdir):
-
     cmd = [
         "tests/test_app/dummy_app.py",
         "--config-name=resource_monitor.yaml",
@@ -345,7 +348,6 @@ def test_resource_monitor_disabled(tmpdir):
 
 
 def test_resource_monitor_raises(tmpdir):
-
     cmd = [
         "tests/test_app/dummy_app.py",
         "--config-name=resource_monitor.yaml",
