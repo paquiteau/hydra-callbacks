@@ -1,0 +1,14 @@
+foo: bar
+
+hydra:
+  callbacks:
+    git_infos:
+      _target_: hydra_callbacks.GitInfo
+      clean: true
+    latest_callback:
+      _target_: hydra_callbacks.LatestRunLink
+    resource_monitor:
+      _target_: hydra_callbacks.ResourceMonitor
+      sample_interval: 0.5
+    runtime_perf:
+      _target_: hydra_callbacks.RuntimePerformance
