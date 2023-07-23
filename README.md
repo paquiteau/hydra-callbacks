@@ -8,7 +8,7 @@
 [![CI](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml)
 [![Release](https://img.shields.io/github/v/release/paquiteau/hydra-callbacks)](https://github.com/paquiteau/hydra-callbacks/releases/latest)
 
-A collection of usefulls callbacks for the [https://hydra.cc/](hydra) configuration framework.
+A collection of usefulls and simple to use callbacks for the [https://hydra.cc/](hydra) configuration framework.
 
 
 ## Installation 
@@ -94,3 +94,7 @@ Open a PR or an issue !
 
 ### Possible Ideas
 - A callback that summarize log from multiple runs
+- Monitoring of GPU  using nvitop
+  
+<p align=center> :star2: If you like this work, don't forget to star it and share it 🌟 </p>
+
