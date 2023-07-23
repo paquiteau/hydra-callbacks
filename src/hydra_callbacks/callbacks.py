@@ -1,4 +1,6 @@
 """Callback mechanism for hydra  jobs."""
+from __future__ import annotations
+from typing import Callable
 import errno
 import glob
 import json
@@ -127,11 +129,18 @@ class MultiRunGatherer(Callback):
     ----------
     result_file: str
         name of the file to gathers from all the jobs.
+    aggregator: Callable
+        function to aggregate the results. This function should take a list of
+        filepath as input and process them. By default this assume that each
+        result file is a json file, and will load them as a list of dict, and
+        save them as a csv file.
     """
 
-    def __init__(self, result_file: str = "results.json"):
+    def __init__(self, result_file: str = "results.json", aggregator: Callable = None):
         callback_logger.debug("Init %s", self.__class__.__name__)
         self.result_file = result_file
+
+        self.aggregator = aggregator or self._default_aggregator
 
     def on_multirun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Run after all job have ended.
@@ -140,8 +149,12 @@ class MultiRunGatherer(Callback):
         """
         save_dir = config.hydra.sweep.dir
         os.chdir(save_dir)
+        self.aggregator(glob.glob(f"*/{self.result_file}"))
+
+    def _default_aggregator(self, files: list[os.PathLike]) -> os.PathLike:
+        """Aggregat the results as a dataframe and save it as csv."""
         results = []
-        for filename in glob.glob(f"*/{self.result_file}"):
+        for filename in files:
             with open(filename) as f:
                 loaded = json.load(f)
                 if isinstance(loaded, list):
@@ -151,6 +164,7 @@ class MultiRunGatherer(Callback):
         df = pd.DataFrame(results)
         df.to_csv("agg_results.csv")
         callback_logger.info(f"Gathered results in {Path.cwd() / 'agg_results.csv'}")
+        return Path.cwd() / "agg_results.csv"
 
 
 class LatestRunLink(Callback):
