@@ -25,6 +25,7 @@ class PerfLogger:
     """
 
     timers = {}
+    timers_stack = []
 
     def __init__(
         self,
@@ -49,14 +50,17 @@ class PerfLogger:
 
     def __enter__(self):
         self.logger(f"Starting {self._name}...")
+        self.current_timer = self._name
         self._start_time = perf_counter()
+        self.timers_stack.append(self._name)
         return self
 
     def __exit__(self, *exc_info: tuple):
         self._stop_time = perf_counter()
         elapsed = self._stop_time - self._start_time
         formatted = self._format.format(elapsed, name=self._name)
-        self.timers[self._name] = elapsed
+        self.timers["/".join(self.timers_stack)] = elapsed
+        self.timers_stack.pop(-1)
         self.logger(formatted)
 
     @classmethod
