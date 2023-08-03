@@ -18,7 +18,7 @@ import numpy as np
 _chdir_to_dir_containing("pyproject.toml")
 
 
-@contextlib.contextmanager
+@contextlib.contextmanager  # type: ignore
 def chdirto(new_dir) -> None:
     """Very simple context manager to change directory temporarly.
 
@@ -235,7 +235,6 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
     result, _err = run_python_script(cmd)
     assert _err == ""
     assert_regex_match(
-        result,
         dedent(
             """\
             [HYDRA] Launching 3 jobs locally
@@ -256,6 +255,7 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
                 tmpdir=tmpdir
             )
         ),
+        result,
     )
     with open(tmpdir / "agg_results.csv") as f:
         assert len(f.readlines()) == 4
@@ -287,7 +287,6 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
         result, _err = run_python_script(cmd, raise_exception=False)
     assert _err == ""
     assert_regex_match(
-        result,
         dedent(
             """\
                 [HYDRA] Git sha: {sha}, dirty: True
@@ -296,6 +295,7 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
                 sha=sha,
             )
         ),
+        result,
     )
 
 
@@ -316,7 +316,6 @@ def test_resource_monitor(tmpdir: Path, multirun) -> None:
         cmd.insert(2, "--multirun")
     result, _err = run_python_script(cmd)
     assert_regex_match(
-        result,
         (HYDRA_LAUNCH_LOG if multirun else "")
         + dedent(
             """\
@@ -327,6 +326,7 @@ def test_resource_monitor(tmpdir: Path, multirun) -> None:
                 tmpdir=tmpdir, logger="HYDRA" if multirun else "JOB"
             )
         ),
+        result,
     )
 
 
