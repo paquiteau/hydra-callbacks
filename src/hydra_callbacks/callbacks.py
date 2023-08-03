@@ -15,7 +15,8 @@ from hydra.core.utils import JobReturn
 from hydra.experimental.callback import Callback
 from hydra.types import TaskFunction
 from hydra.utils import to_absolute_path
-from omegaconf import DictConfig, open_dict, MISSING
+from omegaconf import DictConfig, open_dict
+import omegaconf
 
 from .monitor import ResourceMonitorService
 
@@ -310,8 +311,8 @@ class ResourceMonitor(AnyRunCallback):
         """Get the job id."""
         hconf = HydraConfig.get()
         name = hconf.job.name
-        if hconf.job.id is not MISSING:
+        try:
             id = hconf.job.id
-        else:
+        except omegaconf.errors.MissingMandatoryValue:
             id = "0"
         return name, id
