@@ -1,6 +1,6 @@
 """Callback mechanism for hydra  jobs."""
 from __future__ import annotations
-from typing import Callable
+from typing import Callable, Any
 import errno
 import glob
 import json
@@ -15,11 +15,16 @@ from hydra.core.utils import JobReturn
 from hydra.experimental.callback import Callback
 from hydra.types import TaskFunction
 from hydra.utils import to_absolute_path
-from omegaconf import DictConfig, open_dict
+from omegaconf import DictConfig, open_dict, MISSING
 
 from .monitor import ResourceMonitorService
 
 callback_logger = logging.getLogger("hydra.callbacks")
+
+
+def dummy_run(config: DictConfig, **kwargs: None) -> None:
+    """Do nothing."""
+    pass
 
 
 class AnyRunCallback(Callback):
@@ -31,10 +36,8 @@ class AnyRunCallback(Callback):
         self.enabled = enabled
         if not self.enabled:
             # don't do anything if not enabled
-            self.on_job_start = lambda *args, **kwargs: None
-            self.on_job_end = lambda *args, **kwargs: None
-            self._on_anyrun_start = lambda *args, **kwargs: None
-            self._on_anyrun_end = lambda *args, **kwargs: None
+            self._on_anyrun_start = dummy_run  # type: ignore
+            self._on_anyrun_end = dummy_run  # type: ignore
 
     def on_run_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute before a single run."""
@@ -136,7 +139,11 @@ class MultiRunGatherer(Callback):
         save them as a csv file.
     """
 
-    def __init__(self, result_file: str = "results.json", aggregator: Callable = None):
+    def __init__(
+        self,
+        result_file: str = "results.json",
+        aggregator: Callable[[list[str]], os.PathLike] | None = None,
+    ):
         callback_logger.debug("Init %s", self.__class__.__name__)
         self.result_file = result_file
 
@@ -151,7 +158,7 @@ class MultiRunGatherer(Callback):
         os.chdir(save_dir)
         self.aggregator(glob.glob(f"*/{self.result_file}"))
 
-    def _default_aggregator(self, files: list[os.PathLike]) -> os.PathLike:
+    def _default_aggregator(self, files: list[str]) -> os.PathLike:
         """Aggregat the results as a dataframe and save it as csv."""
         results = []
         for filename in files:
@@ -230,6 +237,8 @@ class ResourceMonitor(AnyRunCallback):
         The file to write the monitoring data to.
     """
 
+    _monitor: dict[tuple[str, str], Any]
+
     def __init__(
         self,
         enabled: bool = True,
@@ -243,13 +252,13 @@ class ResourceMonitor(AnyRunCallback):
 
     def on_run_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute after a single run."""
-        self._on_anyrun_start(config.hydra.run.dir)
+        self._set_monit_file(config.hydra.run.dir)
 
     def on_multirun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Execute after a multi run."""
-        self._on_anyrun_start(config.hydra.sweep.dir)
+        self._set_monit_file(config.hydra.sweep.dir)
 
-    def _on_anyrun_start(self, run_dir: str) -> None:
+    def _set_monit_file(self, run_dir: str) -> None:
         """Configure the path for the monitoring file."""
         self.monitoring_file = os.path.join(
             to_absolute_path(run_dir), self.monitoring_file
@@ -283,19 +292,26 @@ class ResourceMonitor(AnyRunCallback):
         sampled_data = self._monitor[job_full_id].stop()
 
         del self._monitor[job_full_id]
-        sampled_data["prof_dict"]["job_name"] = job_full_id[0]
-        sampled_data["prof_dict"]["job_id"] = job_full_id[1]
+        if sampled_data:
+            df = pd.DataFrame(sampled_data)
+            df.to_csv(
+                self.monitoring_file,
+                mode="a",
+                header=not os.path.exists(self.monitoring_file),
+            )
+            max_cpu = sampled_data["cpus"].max()
+            max_mem = sampled_data["rss_GiB"].max()
+            callback_logger.debug(
+                f"{job_full_id[0]}(#{job_full_id[1]}): max cpu: {max_cpu:.2f}%,"
+                f"max mem: {max_mem:.2f} GiB"
+            )
 
-        df = pd.DataFrame(sampled_data["prof_dict"])
-        df.to_csv(
-            self.monitoring_file,
-            mode="a",
-            header=not os.path.exists(self.monitoring_file),
-        )
-
-    def _get_job_info(self) -> str:
+    def _get_job_info(self) -> tuple[str, str]:
         """Get the job id."""
         hconf = HydraConfig.get()
         name = hconf.job.name
-        id = hconf.job.get("id", 0)
+        if hconf.job.id is not MISSING:
+            id = hconf.job.id
+        else:
+            id = "0"
         return name, id

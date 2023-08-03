@@ -2,8 +2,8 @@
 import multiprocessing
 import os
 import time
-from typing import Callable
-
+from typing import Callable, Mapping
+from numpy.typing import ArrayLike
 import numpy as np
 import psutil
 
@@ -69,7 +69,7 @@ class ResourceMonitorService:
         self,
         pid: int,
         interval: int | float = 1,
-        base_name: str = None,
+        base_name: str = "",
     ):
         # Make sure psutil is imported
         import psutil
@@ -93,7 +93,7 @@ class ResourceMonitorService:
         # Start thread
         self._timer = ProcessTimer(self._interval, self._sample)
 
-    def _sample(self, cpu_interval: float = None) -> None:
+    def _sample(self, cpu_interval: float | None = None) -> None:
         cpu = 0.0
         rss = 0.0
         vms = 0.0
@@ -130,26 +130,18 @@ class ResourceMonitorService:
         self._sample(cpu_interval=0.2)
         self._timer.start()
 
-    def stop(self) -> dict[str, float | None]:
+    def stop(self) -> Mapping[str, ArrayLike] | None:
         """Stop monitoring."""
         self._timer.cancel()
         del self._timer
-
-        retval = {
-            "mem_peak_gb": None,
-            "cpu_percent": None,
-        }
-
         # Read .prof file in and set runtime values
         vals = np.loadtxt(self._fname, delimiter=",")
         if vals.size:
             vals = np.atleast_2d(vals)
-            retval["mem_peak_gb"] = vals[:, 2].max() / 1024
-            retval["cpu_peak_percent"] = vals[:, 1].max()
-            retval["prof_dict"] = {
+            return {
                 "time": vals[:, 0],
                 "cpus": vals[:, 1],
                 "rss_GiB": vals[:, 2] / 1024,
                 "vms_GiB": vals[:, 3] / 1024,
             }
-        return retval
+        return None

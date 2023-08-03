@@ -24,8 +24,10 @@ class PerfLogger:
             time.sleep(1)
     """
 
-    timers = {}
-    timers_stack = []
+    timers: dict[str, float] = {}
+    timers_stack: list[str] = []
+    _stop_time: float
+    _start_time: float
 
     def __init__(
         self,
@@ -44,8 +46,6 @@ class PerfLogger:
         else:
             raise ValueError("logger must be a Logger or a callable")
 
-        self._start_time = None
-        self._stop_time = None
         self._format = time_format
 
     def __enter__(self):
