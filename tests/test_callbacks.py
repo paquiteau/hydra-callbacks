@@ -236,7 +236,7 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
     assert _err == ""
     assert_regex_match(
         dedent(
-            """\
+            f"""\
             [HYDRA] Launching 3 jobs locally
             [HYDRA] 	#0 : +a=1
             [JOB] foo: bar
@@ -251,9 +251,7 @@ def test_multirun_gatherer(tmpdir: Path) -> None:
             a: 3
 
             [HYDRA] Gathered results in {tmpdir}/agg_results.csv
-            """.format(
-                tmpdir=tmpdir
-            )
+            """
         ),
         result,
     )
@@ -288,12 +286,10 @@ def test_dirty_git_repo_error(tmpdir: Path) -> None:
     assert _err == ""
     assert_regex_match(
         dedent(
-            """\
+            f"""\
                 [HYDRA] Git sha: {sha}, dirty: True
                 [HYDRA] Repo is dirty, aborting
-                """.format(
-                sha=sha,
-            )
+                """
         ),
         result,
     )
