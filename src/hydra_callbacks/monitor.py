@@ -1,4 +1,5 @@
 """Resource Monitor Utilities."""
+from subprocess import check_output
 import multiprocessing
 import os
 import time
@@ -57,12 +58,12 @@ class ResourceMonitorService:
     ----------
     pid: int
         The process ID to monitor
-    sample_period: float
-        The time interval at wat which to sample the process, in seconds.
+    interval: float or int
+        The sampling interval in seconds, default 1s.
     base_name: str
-        The name of the job, used to determined the temporary file name.
-    backend: str
-        The backend to use. Can be either "threading" or "process"
+        Base name for the monitoring trace file.
+    gpu_monit: bool
+        If True, also monitor gpu usage and memory, default False.
     """
 
     def __init__(
@@ -70,6 +71,8 @@ class ResourceMonitorService:
         pid: int,
         interval: int | float = 1,
         base_name: str = "",
+        gpu_monit: bool = False,
+        gpu_devices: list[int] | None = None,
     ):
         # Make sure psutil is imported
         import psutil
@@ -85,18 +88,22 @@ class ResourceMonitorService:
         self._fname = os.path.abspath(fname)
         self._logfile = open(self._fname, "w")
         self._interval = interval
+        self.gpu_monit = gpu_monit
+        if gpu_monit and gpu_devices is None:
+            n_gpu = len(check_output(["nvidia-smi", "-L"]).splitlines())
+            self.gpu_devices = list(range(n_gpu))
 
         # Leave process initialized and make first sample
         self._process = psutil.Process(pid)
         self._sample(cpu_interval=0.2)
-
-        # Start thread
+        # Start timer process
         self._timer = ProcessTimer(self._interval, self._sample)
 
     def _sample(self, cpu_interval: float | None = None) -> None:
         cpu = 0.0
         rss = 0.0
         vms = 0.0
+        pids = [self._process.pid]
         try:
             with self._process.oneshot():
                 cpu += self._process.cpu_percent(interval=cpu_interval)
@@ -114,6 +121,7 @@ class ResourceMonitorService:
 
         for child in children:
             try:  # pragma: no cover
+                pids.append(child.pid)
                 with child.oneshot():
                     cpu += child.cpu_percent()
                     mem_info = child.memory_info()
@@ -122,8 +130,41 @@ class ResourceMonitorService:
             except psutil.NoSuchProcess:  # pragma: no cover
                 pass
 
-        print(f"{time.time()}, {cpu}, {rss / _MB}, {vms / _MB}", file=self._logfile)
+        log_string = f"{time.time()}, {cpu}, {rss / _MB}, {vms / _MB}"
+        if self.gpu_monit:
+            gpu_mems, gpu_usages = self._gpu_sample(pids)
+            for mem, usage in zip(gpu_mems, gpu_usages):
+                log_string += f", {mem}, {usage}"
+        print(log_string, file=self._logfile)
         self._logfile.flush()
+
+    def _gpu_sample(self, pids: list[int]) -> tuple[list[int], list[int]]:
+        """Sample the GPU usage."""
+        mem = [0] * len(self.gpu_devices)
+        usage = [0] * len(self.gpu_devices)
+        pmon_mem = check_output(["nvidia-smi", "pmon", "-c=1", "-s=m"])
+        pmon_usage = check_output(["nvidia-smi", "pmon", "-c=1", "-s=u"])
+        # get Memory Frame Buffer Size
+        for line in pmon_mem.splitlines()[2:]:
+            sample = list(filter(None, line.split(b"  ")))
+            pid = int(sample[1])
+            if pid in pids:
+                device = int(sample[0])
+                mem[device] += int(sample[3])
+
+        # get SM usage
+        for line in pmon_usage.splitlines()[2:]:
+            sample = list(filter(None, line.split(b"  ")))
+            pid = int(sample[1])
+            if pid in pids:
+                device = int(sample[0])
+                usage[device] += int(sample[4])
+
+        return mem, usage
+
+    def __del__(self) -> None:
+        """Close the log file."""
+        self._logfile.close()
 
     def start(self) -> None:
         """Start monitoring."""
@@ -136,12 +177,17 @@ class ResourceMonitorService:
         del self._timer
         # Read .prof file in and set runtime values
         vals = np.loadtxt(self._fname, delimiter=",")
-        if vals.size:
-            vals = np.atleast_2d(vals)
-            return {
-                "time": vals[:, 0],
-                "cpus": vals[:, 1],
-                "rss_GiB": vals[:, 2] / 1024,
-                "vms_GiB": vals[:, 3] / 1024,
-            }
-        return None
+        if not vals.size:
+            return None
+
+        vals = np.atleast_2d(vals)
+        valdict = {
+            "time": vals[:, 0],
+            "cpus": vals[:, 1],
+            "rss_GiB": vals[:, 2] / 1024,
+            "vms_GiB": vals[:, 3] / 1024,
+        }
+        if self.gpu_monit:
+            for i in self.gpu_devices:
+                valdict[f"gpu{i}_mem_GiB"] = vals[:, 4 + 2 * i] / 1024
+                valdict[f"gpu{i}_usage"] = vals[:, 5 + 2 * i]
