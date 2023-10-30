@@ -1,14 +1,19 @@
 """Resource Monitor Utilities."""
-from subprocess import check_output
+import logging
 import multiprocessing
 import os
+import subprocess
 import time
 from typing import Callable, Mapping
-from numpy.typing import ArrayLike
+
 import numpy as np
 import psutil
+from numpy.typing import ArrayLike
 
 _MB = 1024.0**2
+
+
+callback_logger = logging.getLogger("hydra.callbacks")
 
 
 class ProcessTimer(multiprocessing.Process):
@@ -88,9 +93,16 @@ class ResourceMonitorService:
         self._fname = os.path.abspath(fname)
         self._logfile = open(self._fname, "w")
         self._interval = interval
+        if gpu_monit:
+            try:
+                subprocess.check_call(["nvidia-smi", "--version"])
+            except subprocess.CalledProcessError:  # pragma: no cover
+                callback_logger.warning("nvidia-smi failed, gpu profiling is disabled.")
+                gpu_monit = False
+
         self.gpu_monit = gpu_monit
         if gpu_monit and gpu_devices is None:
-            n_gpu = len(check_output(["nvidia-smi", "-L"]).splitlines())
+            n_gpu = len(subprocess.check_output(["nvidia-smi", "-L"]).splitlines())
             self.gpu_devices = list(range(n_gpu))
 
         # Leave process initialized and make first sample
@@ -142,8 +154,8 @@ class ResourceMonitorService:
         """Sample the GPU usage."""
         mem = [0] * len(self.gpu_devices)
         usage = [0] * len(self.gpu_devices)
-        pmon_mem = check_output(["nvidia-smi", "pmon", "-c=1", "-s=m"])
-        pmon_usage = check_output(["nvidia-smi", "pmon", "-c=1", "-s=u"])
+        pmon_mem = subprocess.check_output(["nvidia-smi", "pmon", "-c=1", "-s=m"])
+        pmon_usage = subprocess.check_output(["nvidia-smi", "pmon", "-c=1", "-s=u"])
         # get Memory Frame Buffer Size
         for line in pmon_mem.splitlines()[2:]:
             sample = list(filter(None, line.split(b"  ")))
@@ -191,3 +203,4 @@ class ResourceMonitorService:
             for i in self.gpu_devices:
                 valdict[f"gpu{i}_mem_GiB"] = vals[:, 4 + 2 * i] / 1024
                 valdict[f"gpu{i}_usage"] = vals[:, 5 + 2 * i]
+        return valdict
