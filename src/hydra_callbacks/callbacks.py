@@ -245,8 +245,10 @@ class ResourceMonitor(AnyRunCallback):
         enabled: bool = True,
         sample_interval: float = 1,
         monitoring_file: str = "resource_monitoring.csv",
+        gpu_monit: bool = False,
     ):
         super().__init__(enabled)
+        self.gpu_monit = gpu_monit
 
         self.sample_interval = sample_interval
         self.monitoring_file = monitoring_file
@@ -279,6 +281,7 @@ class ResourceMonitor(AnyRunCallback):
             os.getpid(),
             interval=self.sample_interval,
             base_name=f"{job_full_id[0]},{job_full_id[1]}",
+            gpu_monit=self.gpu_monit,
         )
         self._monitor[job_full_id].start()
 
