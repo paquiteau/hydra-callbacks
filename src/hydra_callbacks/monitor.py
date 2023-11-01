@@ -107,9 +107,6 @@ class ResourceMonitorService:
 
         # Leave process initialized and make first sample
         self._process = psutil.Process(pid)
-        self._sample(cpu_interval=0.2)
-        # Start timer process
-        self._timer = ProcessTimer(self._interval, self._sample)
 
     def _sample(self, cpu_interval: float | None = None) -> None:
         cpu = 0.0
@@ -180,10 +177,11 @@ class ResourceMonitorService:
 
     def start(self) -> None:
         """Start monitoring."""
+        self._timer = ProcessTimer(self._interval, self._sample)
         self._sample(cpu_interval=0.2)
         self._timer.start()
 
-    def stop(self) -> Mapping[str, ArrayLike] | None:
+    def stop(self) -> None:
         """Stop monitoring."""
         self._timer.cancel()
         del self._timer
@@ -203,4 +201,17 @@ class ResourceMonitorService:
             for i in self.gpu_devices:
                 valdict[f"gpu{i}_mem_GiB"] = vals[:, 4 + 2 * i] / 1024
                 valdict[f"gpu{i}_usage"] = vals[:, 5 + 2 * i]
-        return valdict
+        self._valdict = valdict
+
+    def get_values(self) -> Mapping[str, ArrayLike]:
+        """Return the values collected by the monitor."""
+        if not hasattr(self, "_valdict"):
+            raise RuntimeError("You must call stop() before get_values().")
+        return self._valdict
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, *exc_info: tuple):
+        self.stop()
