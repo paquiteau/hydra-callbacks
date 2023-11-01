@@ -84,9 +84,28 @@ def main_app(cfg):
 
     with PerfLogger(log, "step2"):
         sleep(2)
-    log.info(PerfLogger.recap())
+    PerfLogger.recap(log)
 
 ```
+ - `RessourceMonitorService` : A simple CPU and GPU usage and memory sampler. It launches an extra process to monitor everything.
+ 
+ ```python
+from hydra_callbacks.monitor import RessourceMonitorService
+import os 
+ 
+monitor = RessourceMonitorService(interval=0.2, gpu_monit=True)
+ 
+monitor.start()
+# Launch heavy stuff 
+metrics = monitor.stop()
+
+# Or use it as a context manager
+with RessourceMonitorService(interval=0.2, gpu_monit=True) as monitor: 
+    # launch heavy stuff
+    
+metrics_values = monitor.get_values()
+```
+
 
 ## You too, have cool Callbacks, or idea for one ? 
 
