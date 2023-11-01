@@ -293,7 +293,8 @@ class ResourceMonitor(AnyRunCallback):
     ) -> None:
         """Execute after a single job."""
         job_full_id = self._get_job_info()
-        sampled_data = self._monitor[job_full_id].stop()
+        self._monitor[job_full_id].stop()
+        sampled_data = self._monitor[job_full_id].get_values()
 
         del self._monitor[job_full_id]
         if sampled_data:
