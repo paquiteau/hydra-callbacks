@@ -16,6 +16,14 @@ _MB = 1024.0**2
 callback_logger = logging.getLogger("hydra.callbacks")
 
 
+def int_or_0(byte_str: bytes) -> int:
+    """Return the int value of a byte string or 0."""
+    try:
+        return int(byte_str)
+    except ValueError:
+        return 0
+
+
 class ProcessTimer(multiprocessing.Process):
     """Timer behavior using Process instead of Thread.
 
@@ -163,7 +171,7 @@ class ResourceMonitorService:
             pid = int(sample[1])
             if pid in pids:
                 device = int(sample[0])
-                mem[device] += int(sample[3])
+                mem[device] += int_or_0(sample[3])
 
         # get SM usage
         for line in pmon_usage.splitlines()[2:]:
@@ -171,7 +179,7 @@ class ResourceMonitorService:
             pid = int(sample[1])
             if pid in pids:
                 device = int(sample[0])
-                usage[device] += int(sample[4])
+                usage[device] += int_or_0(sample[4])
 
         return mem, usage
 
