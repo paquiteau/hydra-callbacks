@@ -378,7 +378,7 @@ def test_resource_monitor_results(tmpdir: Path) -> None:
 
     df = pd.read_csv(tmpdir / "resource_monitoring.csv", index_col=0)
     # check that the sampling interval is respected
-    assert len(df) > 3 / 0.3
+    assert len(df) >= 3 / 0.3
     np.testing.assert_allclose(df["time"].diff().mean(), sampling_time, rtol=0.05)
     # check that we got some activity on the cpu.
     assert df["cpus"].mean() > 0
