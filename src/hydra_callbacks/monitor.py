@@ -95,7 +95,7 @@ class ResourceMonitorService:
         self._interval = interval
         if gpu_monit:
             try:
-                subprocess.check_call(["nvidia-smi", "--version"])
+                subprocess.check_call(["nvidia-smi", "-L"])
             except subprocess.CalledProcessError:  # pragma: no cover
                 callback_logger.warning("nvidia-smi failed, gpu profiling is disabled.")
                 gpu_monit = False
