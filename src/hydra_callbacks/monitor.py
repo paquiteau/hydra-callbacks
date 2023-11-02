@@ -81,7 +81,7 @@ class ResourceMonitorService:
 
     def __init__(
         self,
-        pid: int,
+        pid: int | None = None,
         interval: int | float = 1,
         base_name: str = "",
         gpu_monit: bool = False,
@@ -90,6 +90,8 @@ class ResourceMonitorService:
         # Make sure psutil is imported
         import psutil
 
+        if pid is None:
+            pid = os.getpid()
         if interval < 0.2:
             raise RuntimeError(
                 f"Sampling interval ({interval:0.2f}s) cannot be lower than 0.2s"
