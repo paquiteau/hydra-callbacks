@@ -99,6 +99,9 @@ convention = "numpy"
 precision = 2
 exclude_lines = ["pragma: no cover", "raise NotImplementedError"]
 
+[tool.coverage.run]
+omit= ["src/hydra_callbacks/_version.py"]
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
