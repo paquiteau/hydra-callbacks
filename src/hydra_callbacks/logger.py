@@ -64,12 +64,16 @@ class PerfLogger:
         self.logger(formatted)
 
     @classmethod
-    def recap(cls, logger: Logger | None = None) -> str:
+    def recap(cls, logger: Logger | Callable | None = None) -> str:
         """Return a string summarizing all the registered timers."""
         cls.timers["Total"] = sum(cls.timers.values())
         ret = ", ".join([f"{name}: {t:.2f}s" for name, t in cls.timers.items()])
-        if logger is not None:
+        if isinstance(logger, Logger):
             logger.info(ret)
+        elif callable(logger):
+            logger(ret)
+        else:
+            raise ValueError("logger must be a Logger or a callable")
         return ret
 
     @classmethod
