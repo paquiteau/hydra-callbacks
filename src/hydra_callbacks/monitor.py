@@ -170,7 +170,10 @@ class ResourceMonitorService:
         # get Memory Frame Buffer Size
         for line in pmon_mem.splitlines()[2:]:
             sample = list(filter(None, line.split(b"  ")))
-            pid = int(sample[1])
+            try:
+                pid = int(sample[1])
+            except ValueError:
+                continue
             if pid in pids:
                 device = int(sample[0])
                 mem[device] += int_or_0(sample[3])
@@ -178,7 +181,10 @@ class ResourceMonitorService:
         # get SM usage
         for line in pmon_usage.splitlines()[2:]:
             sample = list(filter(None, line.split(b"  ")))
-            pid = int(sample[1])
+            try:
+                pid = int(sample[1])
+            except ValueError:
+                continue
             if pid in pids:
                 device = int(sample[0])
                 usage[device] += int_or_0(sample[4])
