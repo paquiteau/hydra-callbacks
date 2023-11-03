@@ -103,6 +103,7 @@ exclude_lines = ["pragma: no cover", "raise NotImplementedError"]
 minversion = "6.0"
 addopts = [
     "--cov=hydra_callbacks",
+    "--cov-branch",
     "--cov-report=term-missing",
     "--cov-report=xml"
 ]
