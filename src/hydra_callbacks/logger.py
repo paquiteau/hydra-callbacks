@@ -72,7 +72,7 @@ class PerfLogger:
             logger.info(ret)
         elif callable(logger):
             logger(ret)
-        else:
+        elif logger is not None:
             raise ValueError("logger must be a Logger or a callable")
         return ret
 
