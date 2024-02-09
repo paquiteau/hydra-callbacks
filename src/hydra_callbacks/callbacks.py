@@ -207,7 +207,8 @@ class LatestRunLink(Callback):
             to_absolute_path(run_dir),
             to_absolute_path(latest_dir_path),
         )
-        callback_logger.info(f"Latest run is at: {latest_dir_path}")
+        callback_logger.info(f"Latest run is at: {run_dir}")
+        callback_logger.info(f"Latest run is also at: {latest_dir_path}")
 
     def _force_symlink(self, src: str, dest: str) -> None:
         """Create a symlink from src to test, overwriting dest if necessary."""
