@@ -24,6 +24,6 @@ from importlib.metadata import version, PackageNotFoundError
 
 try:
     __version__ = version(__name__)
-except PackageNotFoundError:
+except PackageNotFoundError:  # pragma: no cover
     # package is not installed
     pass

@@ -1,13 +1,16 @@
 """Test for callbacks.py module."""
+
 import os
 import shutil
 from pathlib import Path
 from textwrap import dedent
 import contextlib
 import pytest
+from datetime import datetime
 import git
 from hydra.test_utils.test_utils import (
     assert_regex_match,
+    assert_multiline_regex_search,
     _chdir_to_dir_containing,
     run_python_script,
 )
@@ -188,8 +191,8 @@ def test_latest_callback(tmpdir: Path, multirun: bool) -> None:
     cmd = [
         "tests/test_app/dummy_app.py",
         "--config-name=latest_callback",
-        "hydra.run.dir=" + str(tmpdir) + "/${now:%Y-%m-%d}/${now:%H-%M-%S-%f}",
-        "hydra.sweep.dir=" + str(tmpdir) + "/${now:%Y-%m-%d}/${now:%H-%M-%S-%f}",
+        "hydra.run.dir=" + str(tmpdir) + "/${now:%Y-%m-%d}/run_one",
+        "hydra.sweep.dir=" + str(tmpdir) + "/${now:%Y-%m-%d}/run_one",
         "hydra.callbacks.latest_callback.run_base_dir=" + str(tmpdir),
         "hydra.callbacks.latest_callback.multirun_base_dir=" + str(tmpdir),
         "hydra.job.chdir=False",
@@ -202,17 +205,22 @@ def test_latest_callback(tmpdir: Path, multirun: bool) -> None:
     assert_regex_match(
         (HYDRA_LAUNCH_LOG if multirun else "")
         + dedent(
-            """\
+            r"""
             [JOB] foo: bar
 
-            [{logger}] Latest run is at: {tmpdir}/latest
+            [{logger}] Latest run is at: {tmpdir}/{now}/run_one
+            [{logger}] Latest run is also at: {tmpdir}/latest
             """.format(
-                tmpdir=tmpdir, logger="HYDRA" if multirun else "JOB"
+                tmpdir=tmpdir,
+                logger="HYDRA" if multirun else "JOB",
+                now=datetime.now().strftime("%Y-%m-%d"),
             )
         ),
         result,
     )
     first_run_dir = (tmpdir / "latest").readlink()
+    cmd[2] = "hydra.run.dir=" + str(tmpdir) + "/${now:%Y-%m-%d}/run_two"
+    cmd[3] = "hydra.sweep.dir=" + str(tmpdir) + "/${now:%Y-%m-%d}/run_two"
     result2, _err2 = run_python_script(cmd)
     next_run_dir = (tmpdir / "latest").readlink()
     assert first_run_dir != next_run_dir

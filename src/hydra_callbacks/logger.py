@@ -1,4 +1,5 @@
 """Performance tracking tool."""
+
 from time import perf_counter
 from logging import Logger
 import logging
@@ -66,7 +67,7 @@ class PerfLogger:
     @classmethod
     def recap(cls, logger: Logger | Callable | None = None) -> str:
         """Return a string summarizing all the registered timers."""
-        cls.timers["Total"] = sum(cls.timers.values())
+        cls.timers["Total"] = sum([t for n, t in cls.timers.items() if n != "Total"])
         ret = ", ".join([f"{name}: {t:.2f}s" for name, t in cls.timers.items()])
         if isinstance(logger, Logger):
             logger.info(ret)
@@ -81,6 +82,7 @@ class PerfLogger:
         """Reset all the registered timers."""
         cls.timers = {}
 
-    def get_timer(self, name: str) -> float:
+    @classmethod
+    def get_timer(cls, name: str) -> float:
         """Return the elapsed time of a timer."""
-        return self.timers[name]
+        return cls.timers[name]
