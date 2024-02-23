@@ -390,3 +390,27 @@ def test_resource_monitor_results(tmpdir: Path) -> None:
     np.testing.assert_allclose(df["time"].diff().mean(), sampling_time, rtol=0.05)
     # check that we got some activity on the cpu.
     assert df["cpus"].mean() > 0
+
+
+@pytest.mark.parametrize("multirun", [True, False])
+def test_register_callbacks(tmpdir: Path, multirun: bool) -> None:
+    cmd = [
+        "tests/test_app/dummy_app.py",
+        "--config-name=register_callback",
+        "hydra.run.dir=" + str(tmpdir) + "/${now:%Y-%m-%d_%H-%M-%S}/",
+        "hydra.sweep.dir=" + str(tmpdir) + "/sweep/${now:%Y-%m-%d_%H-%M-%S}/",
+        "++hydra.callbacks.register_callback.run_base_dir=" + str(tmpdir),
+        "++hydra.callbacks.register_callback.multirun_base_dir="
+        + str(tmpdir)
+        + "/sweep",
+        "hydra.job.chdir=false",
+        "hydra.verbose=true",
+        "++timestamp=${now:%Y-%m-%d_%H-%M-%S}",
+    ]
+
+    cmd.insert(2, "--multirun") if multirun else None
+    result, _err = run_python_script(cmd)
+    assert _err == ""
+    cmd.insert(-1, "++foo=barbar")
+    result, _err = run_python_script(cmd)
+    assert _err == ""

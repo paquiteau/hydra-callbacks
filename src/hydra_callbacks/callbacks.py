@@ -1,4 +1,5 @@
 """Callback mechanism for hydra  jobs."""
+
 from __future__ import annotations
 from typing import Callable, Any
 import errno
@@ -11,11 +12,11 @@ import time
 
 import pandas as pd
 from hydra.core.hydra_config import HydraConfig
-from hydra.core.utils import JobReturn
+from hydra.core.utils import JobReturn, JobStatus
 from hydra.experimental.callback import Callback
 from hydra.types import TaskFunction
 from hydra.utils import to_absolute_path
-from omegaconf import DictConfig, open_dict
+from omegaconf import DictConfig, open_dict, OmegaConf
 import omegaconf
 
 from .monitor import ResourceMonitorService
@@ -321,3 +322,66 @@ class ResourceMonitor(AnyRunCallback):
         except omegaconf.errors.MissingMandatoryValue:
             id = "0"
         return name, id
+
+
+class RegisterRunCallback(Callback):
+    """Callback that register the run in a .csv file at the end of the run.
+
+    Single and MultiRun are handled in different files. Note that this append one row per config.
+    Only the config is being registered, not the possible output of the run.
+
+    Parameters
+    ----------
+    enabled : bool
+        if True, will register the run.
+
+    register_file: str
+        name of the file to register the run in.
+    """
+
+    def __init__(
+        self,
+        enabled: bool = True,
+        register_file: str = "register.csv",
+        run_base_dir: str = "outputs",
+        multirun_base_dir: str = "multiruns",
+    ):
+        self.enabled = enabled
+        self.register_file = register_file
+        self.run_base_dir = to_absolute_path(run_base_dir)
+        self.multirun_base_dir = to_absolute_path(multirun_base_dir)
+        if not self.enabled:
+            self.on_job_end = dummy_run
+        else:
+            self.on_job_end = self._on_job_end  # type: ignore
+
+    def _on_job_end(
+        self, config: DictConfig, job_return: JobReturn, **kwargs: None
+    ) -> None:
+        """Execute after every job."""
+        # The hydra part of the conf is not resolvable (frozen)
+        # and we don't want to monitor it (if needed it would still be available in .hydra folder)
+        # Hence:
+        conf_ = OmegaConf.to_container(config)
+        conf_.pop("hydra")
+        conf_ = DictConfig(conf_)
+        OmegaConf.resolve(conf_)
+        conf_ = OmegaConf.to_container(conf_)
+        pandas_config = pd.json_normalize(conf_)
+        if config.hydra.mode == "MULTIRUN":
+            pandas_config["run-dir"] = config.hydra.sweep.dir
+            base_dir = self.multirun_base_dir
+        else:
+            pandas_config["run-dir"] = config.hydra.run.dir
+            base_dir = self.run_base_dir
+
+        pandas_config["job_success"] = job_return.status == JobStatus.COMPLETED
+
+        register_file = os.path.join(base_dir, self.register_file)
+        try:
+            df = pd.read_csv(register_file, index_col=None)
+            df = pd.concat([df, pandas_config])
+            df.to_csv(register_file, index=False)
+        except FileNotFoundError:
+            df = pd.DataFrame(pandas_config)
+            df.to_csv(register_file, index=False)

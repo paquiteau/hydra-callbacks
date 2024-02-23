@@ -42,6 +42,7 @@ dependencies = [
   "GitPython",
   "pandas",
   "numpy",
+  "fastparquet",
   "psutil",
 ]
 
