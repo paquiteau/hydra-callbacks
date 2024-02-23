@@ -1,0 +1,7 @@
+foo: bar
+
+hydra:
+  callbacks:
+    register_callback:
+      _target_: hydra_callbacks.RegisterRunCallback
+      register_file: "register.csv"
