@@ -238,6 +238,8 @@ class ResourceMonitor(AnyRunCallback):
         The time interval at wat which to sample the process, in seconds.
     monitoring_file : str
         The file to write the monitoring data to.
+    gpu_monit: bool , default False
+        Also monitor gpu data.
     """
 
     _monitor: dict[tuple[str, str], Any]
@@ -301,6 +303,8 @@ class ResourceMonitor(AnyRunCallback):
         del self._monitor[job_full_id]
         if sampled_data:
             df = pd.DataFrame(sampled_data)
+            df["job_name"] = job_full_id[0]
+            df["job_id"] = job_full_id[1]
             df.to_csv(
                 self.monitoring_file,
                 mode="a",
