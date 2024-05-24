@@ -331,8 +331,8 @@ class ResourceMonitor(AnyRunCallback):
 class RegisterRunCallback(Callback):
     """Callback that register the run in a .csv file at the end of the run.
 
-    Single and MultiRun are handled in different files. Note that this append one row per config.
-    Only the config is being registered, not the possible output of the run.
+    Single and MultiRun are handled in different files. Note that this append one row
+    per config. Only the config is being registered, not the possible output of the run.
 
     Parameters
     ----------
@@ -364,7 +364,8 @@ class RegisterRunCallback(Callback):
     ) -> None:
         """Execute after every job."""
         # The hydra part of the conf is not resolvable (frozen)
-        # and we don't want to monitor it (if needed it would still be available in .hydra folder)
+        # and we don't want to monitor it (if needed it would still be available in
+        # ``.hydra`` folder)
         # Hence:
         conf_ = OmegaConf.to_container(config)
         conf_.pop("hydra")
