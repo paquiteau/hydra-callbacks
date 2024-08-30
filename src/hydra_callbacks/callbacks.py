@@ -416,7 +416,7 @@ class SetEnvironment(AnyRunCallback):
 class ExecShellCommand(Callback):
     """Execute a shell command at the end of the run."""
 
-    def __init__(self, run_command: str = None, multirun_command: str = None):
+    def __init__(self, run_command: str = "", multirun_command: str = ""):
         self.run_command = run_command
         self.multirun_command = multirun_command
 
