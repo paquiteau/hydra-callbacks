@@ -413,3 +413,19 @@ class SetEnvironment(AnyRunCallback):
             os.environ.pop(key, None)
 
 
+class ExecShellCommand(Callback):
+    """Execute a shell command at the end of the run."""
+
+    def __init__(self, run_command: str = None, multirun_command: str = None):
+        self.run_command = run_command
+        self.multirun_command = multirun_command
+
+    def on_run_end(self, config: DictConfig, **kwargs: None) -> None:
+        """Execute after a single run."""
+        if self.run_command:
+            os.system(self.run_command)
+
+    def on_multirun_end(self, config: DictConfig, **kwargs: None) -> None:
+        """Execute after a multi run."""
+        if self.multirun_command:
+            os.system(self.multirun_command)
