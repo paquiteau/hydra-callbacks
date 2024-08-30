@@ -390,3 +390,26 @@ class RegisterRunCallback(Callback):
         except FileNotFoundError:
             df = pd.DataFrame(pandas_config)
             df.to_csv(register_file, index=False)
+
+
+class SetEnvironment(AnyRunCallback):
+    """Set environment variables from the config.
+
+    The variable are unset at the end of the run.
+    """
+
+    def __init__(self, enabled: bool = True, env: dict[str, Any] | None = None):
+        super().__init__(enabled)
+        self.env = env or {}
+
+    def _anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
+        """Set the environment variables."""
+        for key, value in self.env.items():
+            os.environ[key] = value
+
+    def _anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
+        """Unset the environment variables."""
+        for key in self.env:
+            os.environ.pop(key, None)
+
+
