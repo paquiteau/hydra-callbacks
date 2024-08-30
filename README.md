@@ -8,7 +8,7 @@
 [![CI](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml)
 [![Release](https://img.shields.io/github/v/release/paquiteau/hydra-callbacks)](https://github.com/paquiteau/hydra-callbacks/releases/latest)
 
-A collection of usefulls and simple to use callbacks for the [https://hydra.cc/](hydra) configuration framework.
+A collection of usefulls and simple to use callbacks for the [hydra](https://hydra.cc/) configuration framework.
 
 
 ## Installation 
