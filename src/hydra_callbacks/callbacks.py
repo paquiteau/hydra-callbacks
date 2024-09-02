@@ -84,7 +84,7 @@ class RuntimePerformance(AnyRunCallback):
     ```yaml
     callbacks:
       perf:
-        _target_: callbacks.RuntimePerformance
+        _target_: hydra_callbacks.RuntimePerformance
         enabled: true
     ```
     """
@@ -117,7 +117,7 @@ class GitInfo(AnyRunCallback):
     ```yaml
     callbacks:
       git_infos:
-        _target_: callbacks.GitInfo
+        _target_: hydra_callbacks.GitInfo
         clean: true
     ```
     """
@@ -164,9 +164,9 @@ class MultiRunGatherer(Callback):
     ```yaml
     callbacks:
       gather:
-        _target_: callbacks.MultiRunGatherer
+        _target_: hydra_callbacks.MultiRunGatherer
         result_file: results.json
-        aggregator: callbacks.MultiRunGatherer._default_aggregator
+        aggregator: hydra_callbacks.MultiRunGatherer._default_aggregator
     ```
     """
 
@@ -221,7 +221,7 @@ class LatestRunLink(Callback):
     ```yaml
     callbacks:
       latest_run:
-        _target_: callbacks.LatestRunLink
+        _target_: hydra_callbacks.LatestRunLink
         run_base_dir: outputs
         multirun_base_dir: multirun
     ```
@@ -286,7 +286,7 @@ class ResourceMonitor(AnyRunCallback):
     ```yaml
     callbacks:
       resource_monitor:
-        _target_: callbacks.ResourceMonitor
+        _target_: hydra_callbacks.ResourceMonitor
         enabled: true
         sample_interval: 1
         monitoring_file: resource_monitoring.csv
@@ -402,7 +402,7 @@ class RegisterRun(Callback):
     ```yaml
     callbacks:
       register_run:
-        _target_: callbacks.RegisterRunCallback
+        _target_: hydra_callbacks.RegisterRun
         enabled: true
         register_file: register.csv
         run_base_dir: outputs
@@ -476,7 +476,7 @@ class SetEnvironment(AnyRunCallback):
     ```yaml
     callbacks:
       set_env:
-        _target_: callbacks.SetEnvironment
+        _target_: hydra_callbacks.SetEnvironment
         enabled: true
         env:
           VAR1: "value1"
@@ -514,7 +514,7 @@ class ExecShellCommand(AnyRunCallback):
     ```yaml
     callbacks:
       exec_shell:
-        _target_: callbacks.ExecShellCommand
+        _target_: hydra_callbacks.ExecShellCommand
         run_command: echo "run done"
         multirun_command: echo "multirun done"
     ```
