@@ -4,6 +4,13 @@
 <img src=img/hydra_callbacks.jpeg width=400px/>
 </center>
 
+[![style](https://img.shields.io/badge/style-black-black)](https://github.com/psf/black)
+[![framework](https://img.shields.io/badge/framework-hydra-blue)](https://hydra.cc)
+[![codecov](https://codecov.io/gh/paquiteau/hydra-callbacks/branch/master/graph/badge.svg?token=NEV7SY24YB)](https://codecov.io/gh/paquiteau/hydra-callbacks)
+[![CD](https://github.com/paquiteau/hydra-callbacks/actions/workflows/master-cd.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/master-cd.yml)
+[![CI](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml)
+[![Release](https://img.shields.io/github/v/release/paquiteau/hydra-callbacks)](https://github.com/paquiteau/hydra-callbacks/releases/latest)
+
 Add callback to your [hydra](https://hydra.cc/docs/intro) application.
 
 Hydra Callbacks is a simple library that allows you to add callbacks to your hydra application. It is a simple way to add hooks to your application, without reinventing the wheel. 

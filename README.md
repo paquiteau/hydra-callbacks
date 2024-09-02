@@ -1,5 +1,9 @@
 # Hydra Callbacks 
 
+<center>
+<img src=img/hydra_callbacks.jpeg width=400px/>
+</center>
+
 
 [![style](https://img.shields.io/badge/style-black-black)](https://github.com/psf/black)
 [![framework](https://img.shields.io/badge/framework-hydra-blue)](https://hydra.cc)
