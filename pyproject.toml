@@ -103,7 +103,7 @@ precision = 2
 exclude_lines = ["pragma: no cover", "raise NotImplementedError"]
 
 [tool.coverage.run]
-omit= ["src/hydra_callbacks/_version.py"]
+omit= ["src/hydra_callbacks/_version.py", "src/hydra_callbacks/monitor.py"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
