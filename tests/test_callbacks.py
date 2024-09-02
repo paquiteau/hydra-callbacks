@@ -10,7 +10,6 @@ from datetime import datetime
 import git
 from hydra.test_utils.test_utils import (
     assert_regex_match,
-    assert_multiline_regex_search,
     _chdir_to_dir_containing,
     run_python_script,
 )
@@ -22,7 +21,7 @@ _chdir_to_dir_containing("pyproject.toml")
 
 
 @contextlib.contextmanager  # type: ignore
-def chdirto(new_dir) -> None:
+def chdirto(new_dir) -> None:  # type: ignore
     """Very simple context manager to change directory temporarly.
 
     https://stackoverflow.com/a/75049063

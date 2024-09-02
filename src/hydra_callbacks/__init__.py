@@ -7,7 +7,9 @@ from .callbacks import (
     MultiRunGatherer,
     ResourceMonitor,
     RuntimePerformance,
-    RegisterRunCallback,
+    RegisterRun,
+    SetEnvironment,
+    ExecShellCommand,
 )
 from .logger import PerfLogger
 
@@ -19,7 +21,9 @@ __all__ = [
     "ResourceMonitor",
     "LatestRunLink",
     "PerfLogger",
-    "RegisterRunCallback",
+    "RegisterRun",
+    "SetEnvironment",
+    "ExecShellCommand",
 ]
 
 from importlib.metadata import version, PackageNotFoundError

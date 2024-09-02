@@ -30,7 +30,7 @@ def dummy_run(config: DictConfig, **kwargs: None) -> None:
 
 
 class AnyRunCallback(Callback):
-    """Abstract Callback that execute on any run."""
+    """Setup function to be run both in single and multirun mode."""
 
     def __init__(self, enabled: bool = True):
         super().__init__()
@@ -72,12 +72,21 @@ class AnyRunCallback(Callback):
 
 
 class RuntimePerformance(AnyRunCallback):
-    """Callback that log total runtime infos.
+    """Log total runtime infos.
 
     Parameters
     ----------
     enabled : bool
         if True, will log the total runtime.
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      perf:
+        _target_: callbacks.RuntimePerformance
+        enabled: true
+    ```
     """
 
     def __init__(self, enabled: bool = True):
@@ -96,12 +105,21 @@ class RuntimePerformance(AnyRunCallback):
 
 class GitInfo(AnyRunCallback):
     """
-    Callback that check git infos and log them.
+    Check git infos and log them.
 
     Parameters
     ----------
     clean
         if True, will fail if the repo is not clean
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      git_infos:
+        _target_: callbacks.GitInfo
+        clean: true
+    ```
     """
 
     def __init__(self, clean: bool = False):
@@ -129,7 +147,7 @@ class GitInfo(AnyRunCallback):
 
 
 class MultiRunGatherer(Callback):
-    """Define a callback to gather job results from json files after a multirun.
+    """Gather job results from json files after a multirun.
 
     Parameters
     ----------
@@ -140,6 +158,16 @@ class MultiRunGatherer(Callback):
         filepath as input and process them. By default this assume that each
         result file is a json file, and will load them as a list of dict, and
         save them as a csv file.
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      gather:
+        _target_: callbacks.MultiRunGatherer
+        result_file: results.json
+        aggregator: callbacks.MultiRunGatherer._default_aggregator
+    ```
     """
 
     def __init__(
@@ -161,7 +189,8 @@ class MultiRunGatherer(Callback):
         os.chdir(save_dir)
         self.aggregator(glob.glob(f"*/{self.result_file}"))
 
-    def _default_aggregator(self, files: list[str]) -> os.PathLike:
+    @staticmethod
+    def _default_aggregator(files: list[str]) -> os.PathLike:
         """Aggregat the results as a dataframe and save it as csv."""
         results = []
         for filename in files:
@@ -178,7 +207,7 @@ class MultiRunGatherer(Callback):
 
 
 class LatestRunLink(Callback):
-    """Callback that create a symlink to the latest run in the base output dir.
+    """Create a symlink to the latest run in the base output dir.
 
     Parameters
     ----------
@@ -186,6 +215,16 @@ class LatestRunLink(Callback):
         name of the basedir
     multirun_base_dir: str
         name of the basedir for multirun
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      latest_run:
+        _target_: callbacks.LatestRunLink
+        run_base_dir: outputs
+        multirun_base_dir: multirun
+    ```
     """
 
     def __init__(
@@ -225,7 +264,7 @@ class LatestRunLink(Callback):
 
 
 class ResourceMonitor(AnyRunCallback):
-    """Callback that samples the cpu and memory usage during job execution.
+    """Sample the cpu and memory usage during job execution.
 
     The collected  data (cpu percent, memory usage) is written to a csv file.
 
@@ -241,6 +280,18 @@ class ResourceMonitor(AnyRunCallback):
         The file to write the monitoring data to.
     gpu_monit: bool , default False
         Also monitor gpu data.
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      resource_monitor:
+        _target_: callbacks.ResourceMonitor
+        enabled: true
+        sample_interval: 1
+        monitoring_file: resource_monitoring.csv
+        gpu_monit: true
+    ```
     """
 
     _monitor: dict[tuple[str, str], Any]
@@ -329,8 +380,8 @@ class ResourceMonitor(AnyRunCallback):
         return name, id
 
 
-class RegisterRunCallback(Callback):
-    """Callback that register the run in a .csv file at the end of the run.
+class RegisterRun(Callback):
+    """Register the run in a .csv file at the end of the run.
 
     Single and MultiRun are handled in different files. Note that this append one row
     per config. Only the config is being registered, not the possible output of the run.
@@ -339,9 +390,24 @@ class RegisterRunCallback(Callback):
     ----------
     enabled : bool
         if True, will register the run.
-
     register_file: str
         name of the file to register the run in.
+    run_base_dir: str
+        name of the basedir for single runs.
+    multirun_base_dir: str
+        name of the basedir for multiruns.
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      register_run:
+        _target_: callbacks.RegisterRunCallback
+        enabled: true
+        register_file: register.csv
+        run_base_dir: outputs
+        multirun_base_dir: multiruns
+    ```
     """
 
     def __init__(
@@ -397,6 +463,25 @@ class SetEnvironment(AnyRunCallback):
     """Set environment variables from the config.
 
     The variable are unset at the end of the run.
+
+    Parameters
+    ----------
+    enabled : bool
+        if True, will set the environment variables.
+    env : dict
+        dictionary of environment variables to set.
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      set_env:
+        _target_: callbacks.SetEnvironment
+        enabled: true
+        env:
+          VAR1: "value1"
+          VAR2: "value2"
+    ```
     """
 
     def __init__(self, enabled: bool = True, env: dict[str, str] | None = None):
@@ -415,7 +500,25 @@ class SetEnvironment(AnyRunCallback):
 
 
 class ExecShellCommand(AnyRunCallback):
-    """Execute a shell command at the end of the run."""
+    """Execute a shell command at the end of the run.
+
+    Parameters
+    ----------
+    run_command : str
+        command to run at the end of a single run.
+    multirun_command : str
+        command to run at the end of a multi run.
+
+    Examples
+    --------
+    ```yaml
+    callbacks:
+      exec_shell:
+        _target_: callbacks.ExecShellCommand
+        run_command: echo "run done"
+        multirun_command: echo "multirun done"
+    ```
+    """
 
     def __init__(self, run_command: str = "", multirun_command: str = ""):
         self.run_command = run_command
