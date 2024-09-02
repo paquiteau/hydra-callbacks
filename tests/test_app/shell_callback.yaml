@@ -1,0 +1,8 @@
+foo: bar
+
+hydra:
+  callbacks:
+    empty_callback:
+      _target_: hydra_callbacks.callbacks.ExecShellCommand
+      multirun_command: echo "multirun"
+      run_command: echo "single run"

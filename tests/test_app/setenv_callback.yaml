@@ -1,0 +1,9 @@
+foo: bar
+
+hydra:
+  callbacks:
+    empty_callback:
+      _target_: hydra_callbacks.callbacks.SetEnvironment
+      env:
+        MY_ENV_VAR: "MY_ENV_VAR_VALUE"
+        MY_ENV_VAR_RESOLVED: ${foo}

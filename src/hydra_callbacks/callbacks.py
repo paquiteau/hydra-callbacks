@@ -33,6 +33,7 @@ class AnyRunCallback(Callback):
     """Abstract Callback that execute on any run."""
 
     def __init__(self, enabled: bool = True):
+        super().__init__()
         callback_logger.debug("Init %s", self.__class__.__name__)
 
         self.enabled = enabled
@@ -398,22 +399,22 @@ class SetEnvironment(AnyRunCallback):
     The variable are unset at the end of the run.
     """
 
-    def __init__(self, enabled: bool = True, env: dict[str, Any] | None = None):
-        super().__init__(enabled)
+    def __init__(self, enabled: bool = True, env: dict[str, str] | None = None):
+        super().__init__(enabled=enabled)
         self.env = env or {}
 
-    def _anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
+    def _on_anyrun_start(self, config: DictConfig, **kwargs: None) -> None:
         """Set the environment variables."""
         for key, value in self.env.items():
             os.environ[key] = value
 
-    def _anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
+    def _on_any_run_end(self, config: DictConfig, **kwargs: None) -> None:
         """Unset the environment variables."""
         for key in self.env:
             os.environ.pop(key, None)
 
 
-class ExecShellCommand(Callback):
+class ExecShellCommand(AnyRunCallback):
     """Execute a shell command at the end of the run."""
 
     def __init__(self, run_command: str = "", multirun_command: str = ""):
@@ -422,10 +423,8 @@ class ExecShellCommand(Callback):
 
     def on_run_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute after a single run."""
-        if self.run_command:
-            os.system(self.run_command)
+        os.system(self.run_command)
 
     def on_multirun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Execute after a multi run."""
-        if self.multirun_command:
-            os.system(self.multirun_command)
+        os.system(self.multirun_command)

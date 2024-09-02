@@ -14,7 +14,7 @@ from hydra.test_utils.test_utils import (
     _chdir_to_dir_containing,
     run_python_script,
 )
-
+import hydra_callbacks.callbacks as callbacks  # noqa: F401
 import pandas as pd
 import numpy as np
 
@@ -404,8 +404,6 @@ def test_register_callbacks(tmpdir: Path, multirun: bool) -> None:
         + str(tmpdir)
         + "/sweep",
         "hydra.job.chdir=false",
-        "hydra.verbose=true",
-        "++timestamp=${now:%Y-%m-%d_%H-%M-%S}",
     ]
 
     cmd.insert(2, "--multirun") if multirun else None
@@ -413,4 +411,64 @@ def test_register_callbacks(tmpdir: Path, multirun: bool) -> None:
     assert _err == ""
     cmd.insert(-1, "++foo=barbar")
     result, _err = run_python_script(cmd)
+    assert _err == ""
+    # FIXME Also parse the CSV !
+
+
+@pytest.mark.parametrize("multirun", [True, False])
+def test_env_callback(tmpdir: Path, multirun: bool) -> None:
+    cmd = [
+        "tests/test_app/setenv_app.py",
+        "--config-name=setenv_callback",
+        "hydra.run.dir=" + str(tmpdir) + "/${now:%Y-%m-%d_%H-%M-%S}/",
+        "hydra.sweep.dir=" + str(tmpdir) + "/sweep/${now:%Y-%m-%d_%H-%M-%S}/",
+        "hydra.job.chdir=false",
+        "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
+        "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
+    ]
+
+    cmd.insert(2, "--multirun") if multirun else None
+    result, _err = run_python_script(cmd)
+
+    assert_regex_match(
+        (HYDRA_LAUNCH_LOG if multirun else "")
+        + dedent(
+            """\
+            [JOB] foo: bar
+
+            [JOB] MY_ENV_VAR_VALUE
+            [JOB] bar
+            """
+        ),
+        result,
+    )
+
+    assert _err == ""
+
+
+@pytest.mark.parametrize("multirun", [True, False])
+def test_exec_shell(tmpdir: Path, multirun: bool) -> None:
+    cmd = [
+        "tests/test_app/dummy_app.py",
+        "--config-name=shell_callback",
+        "hydra.run.dir=" + str(tmpdir) + "/${now:%Y-%m-%d_%H-%M-%S}/",
+        "hydra.sweep.dir=" + str(tmpdir) + "/sweep/${now:%Y-%m-%d_%H-%M-%S}/",
+        "hydra.job.chdir=false",
+        "hydra.hydra_logging.formatters.simple.format='[HYDRA] %(message)s'",
+        "hydra.job_logging.formatters.simple.format='[JOB] %(message)s'",
+    ]
+
+    cmd.insert(2, "--multirun") if multirun else None
+    result, _err = run_python_script(cmd)
+
+    assert_regex_match(
+        (HYDRA_LAUNCH_LOG if multirun else "")
+        + dedent(
+            """\
+            [JOB] foo: bar
+            """
+        )
+        + ("multirun" if multirun else "single run"),
+        result,
+    )
     assert _err == ""
