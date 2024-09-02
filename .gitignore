@@ -6,3 +6,5 @@ tmp/
 build/
 dist/
 _version.py
+
+site/

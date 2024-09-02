@@ -48,6 +48,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["black", "isort", "ruff"]
+docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 test = ["pytest", "pytest-cov", "pytest-xdist", "pytest-sugar"]
 
 [project.urls]

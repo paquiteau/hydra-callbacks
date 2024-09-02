@@ -1,0 +1,19 @@
+site_name: hydra-callbacks
+repo_url: https://github.com/paquiteau/hydra-callbacks
+
+edit_uri: ./edit/master/docs
+
+theme: material
+
+nav:
+  - Hydra Callbacks: index.md
+  - API Reference: api.md
+
+
+plugins:
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        options:
+          docstring_style: numpy
