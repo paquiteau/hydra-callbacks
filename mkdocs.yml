@@ -3,17 +3,42 @@ repo_url: https://github.com/paquiteau/hydra-callbacks
 
 edit_uri: ./edit/master/docs
 
-theme: material
-
 nav:
   - Hydra Callbacks: index.md
-  - API Reference: api.md
+  - List of Callbacks: api.md
+  - Extras: extras.md
 
+# Style and Config #
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+  features:
+    - content.code.copy
+
+# syntax coloration in code blocks
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+# More colors
+extra_css:
+  - css/mkdocstrings.css
 
 plugins:
-- mkdocstrings:
-    default_handler: python
-    handlers:
-      python:
-        options:
-          docstring_style: numpy
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: false
+            docstring_section_style: list
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true

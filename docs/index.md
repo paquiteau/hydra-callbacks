@@ -65,8 +65,3 @@ paquiteau@laptop$ python my_app.py
 [hydra][INFO] - Writing monitoring data to [...]/outputs/2023-04-06/16-02-46/resource_monitoring.csv
 [hydra][INFO] - Latest run is at: [...]/outputs/latest
 ```
-
-## Available Callbacks
-
-<!--- Start of Callbacks list -->
-
