@@ -49,7 +49,6 @@ jobs:
           fail_ci_if_error: false # optional (default = false)
           verbose: true # optional (default = false)
 
-  TODO: setup a rudimentary doc page
   makedocs:
     name: Deploy Documentation
     runs-on: ubuntu-latest
