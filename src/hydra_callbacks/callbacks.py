@@ -408,7 +408,7 @@ class SetEnvironment(AnyRunCallback):
         for key, value in self.env.items():
             os.environ[key] = value
 
-    def _on_any_run_end(self, config: DictConfig, **kwargs: None) -> None:
+    def _on_anyrun_end(self, config: DictConfig, **kwargs: None) -> None:
         """Unset the environment variables."""
         for key in self.env:
             os.environ.pop(key, None)
