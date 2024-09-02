@@ -49,42 +49,43 @@ jobs:
           fail_ci_if_error: false # optional (default = false)
           verbose: true # optional (default = false)
 
-  # TODO: setup a rudimentary doc page
-  # makedocs:
-  #   name: Deploy API Documentation
-  #   runs-on: ubuntu-latest
-  #   if: success()
+  TODO: setup a rudimentary doc page
+  makedocs:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    if: success()
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-  #     - name: Get history and tags for SCM versioning to work
-  #       run: |
-  #         git fetch --prune --unshallow
-  #         git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: "3.10"
-  #     - name: Install dependencies
-  #       shell: bash -l {0}
-  #       run: |
-  #         python -m pip install --upgrade pip
-  #         python -m pip install .[optional,doc]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[doc]
 
-  #     - name: Build API documentation
-  #       run: |
-  #         python -m sphinx docs docs_build
+      - name: Build API documentation
+        run: |
+          mkdocs build
 
-  #     - name: Upload artifact
-  #       uses: actions/upload-pages-artifact@v1
-  #       with:
-  #         # Upload entire repository
-  #         path: 'docs_build'
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          # Upload entire repository
+          path: 'site'
 
-  #     - name: Deploy to GitHub Pages
-  #       id: deployment
-  #       uses: actions/deploy-pages@v1
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
 
   build-n-publish:
     name: Build and publish Python 🐍 distributions 📦 to TestPyPI
