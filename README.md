@@ -1,9 +1,8 @@
 # Hydra Callbacks 
 
-<center>
-<img src=img/hydra_callbacks.jpeg width=400px/>
-</center>
-
+<p align="center">
+<img src="https://raw.githubusercontent.com/paquiteau/hydra-callbacks/master/docs/img/hydra_callbacks.jpeg" width="400px" />
+</p>
 
 [![style](https://img.shields.io/badge/style-black-black)](https://github.com/psf/black)
 [![framework](https://img.shields.io/badge/framework-hydra-blue)](https://hydra.cc)
@@ -11,6 +10,8 @@
 [![CD](https://github.com/paquiteau/hydra-callbacks/actions/workflows/master-cd.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/master-cd.yml)
 [![CI](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml/badge.svg)](https://github.com/paquiteau/hydra-callbacks/actions/workflows/test-ci.yml)
 [![Release](https://img.shields.io/github/v/release/paquiteau/hydra-callbacks)](https://github.com/paquiteau/hydra-callbacks/releases/latest)
+
+
 
 A collection of usefulls and simple to use callbacks for the [hydra](https://hydra.cc/) configuration framework.
 
